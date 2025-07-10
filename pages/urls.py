@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .views import contact_view
 from .views import admin_contact_list
+from .views import admin_contact_delete
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -22,5 +23,6 @@ urlpatterns = [
 ]
 urlpatterns += [
     path('iletisim/', contact_view, name='iletisim'),
-    path('admin/contacts/', admin_contact_list, name='admin_contact_list'),
+    path('yonetim/contacts/', admin_contact_list, name='admin_contact_list'),
+    path('yonetim/contacts/<int:pk>/delete/', admin_contact_delete, name='admin_contact_delete'),
 ] 

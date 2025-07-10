@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="/">
-      <img src="{% static 'colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği" height="48" class="me-2" style="max-height:48px;">
+      <img src="{% static 'logo/colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği" height="48" class="me-2" style="max-height:48px;">
       <span class="fw-bold">Ankara Çölyak Derneği</span>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,20 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'iletisim' %}">İletişim</a>
         </li>
+        {% if user.is_authenticated and user.is_superuser %}
+          <li class="nav-item dropdown">
+            <a class="btn btn-danger dropdown-toggle nav-link" href="#" id="adminGlutensizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Admin Glutensiz
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="adminGlutensizDropdown">
+              <li><a class="dropdown-item" href="{% url 'admin_food_list' %}">Glutensiz Gıdalar</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_venue_list' %}">Glutensiz Mekanlar</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_hotel_list' %}">Glutensiz Oteller</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_medicine_list' %}">Glutensiz İlaçlar</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">Glutensiz Tarifler</a></li>
+            </ul>
+          </li>
+        {% endif %}
       </ul>
       {% if user.is_authenticated and user.is_superuser %}
         <li class="nav-item dropdown ms-3">
@@ -55,14 +69,7 @@
             <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">Kullanıcılar</a></li>
             <li><a class="dropdown-item" href="{% url 'change_password' %}">Şifre Değiştir</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li class="dropdown-header">Glutensiz</li>
-            <li><a class="dropdown-item" href="{% url 'admin_food_list' %}">Glutensiz Gıdalar</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_venue_list' %}">Glutensiz Mekanlar</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_hotel_list' %}">Glutensiz Oteller</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_medicine_list' %}">Glutensiz İlaçlar</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">Glutensiz Tarifler</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">İletişim Kutusu</a></li>
-            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">Admin İletişim</a></li>
             <li><a class="dropdown-item" href="/admin/">Django Yönetim Paneli</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
@@ -76,4 +83,18 @@
       {% endif %}
     </div>
   </div>
-</nav> 
+</nav>
+<style>
+  .btn-danger.dropdown-toggle.nav-link {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+  }
+  .btn-danger.dropdown-toggle.nav-link:hover,
+  .btn-danger.dropdown-toggle.nav-link:focus,
+  .btn-danger.dropdown-toggle.nav-link:active {
+    color: #fff !important;
+    background-color: #bb2d3b !important;
+    border-color: #b02a37 !important;
+  }
+</style> 

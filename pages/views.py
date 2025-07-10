@@ -5,6 +5,7 @@ from users.models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, Glute
 from .models import ContactMessage
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
 
 def home(request):
     return render(request, 'pages/home.html')
@@ -64,4 +65,15 @@ def contact_view(request):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_contact_list(request):
     messages = ContactMessage.objects.all().order_by('-created_at')
-    return render(request, 'pages/admin_contact_list.html', {'messages': messages})
+    return render(request, 'users/admin_contact_list.html', {'messages': messages})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_contact_delete(request, pk):
+    from .models import ContactMessage
+    msg = get_object_or_404(ContactMessage, pk=pk)
+    if request.method == 'POST':
+        msg.delete()
+        messages.success(request, 'Mesaj başarıyla silindi.')
+        return redirect('admin_contact_list')
+    return render(request, 'users/admin_contact_confirm_delete.html', {'msg': msg})

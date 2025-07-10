@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+  <div class="alert alert-danger">
+    <h4>Mesajı Sil</h4>
+    <p>Bu mesajı silmek istediğinize emin misiniz?</p>
+    <p><strong>{{ msg.name }}</strong> - <strong>{{ msg.subject }}</strong></p>
+    <p><em>{{ msg.message|linebreaksbr }}</em></p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Evet, Sil</button>
+      <a href="{% url 'admin_contact_list' %}" class="btn btn-secondary">Vazgeç</a>
+    </form>
+  </div>
+</div>
+{% endblock %} 
