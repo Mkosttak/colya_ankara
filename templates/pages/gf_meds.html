@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Glutensiz İlaçlar</h1>
+<form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:300px;">
+  <div class="input-group">
+    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim veya marka ara...">
+  </div>
+  <select name="brand" class="form-select" style="min-width:120px;">
+    <option value="">Tüm Markalar</option>
+    {% for brand in brands %}
+      <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+</form>
+{% if medicines %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>İsim</th>
+        <th>Marka</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for medicine in medicines %}
+      <tr>
+        <td>{{ medicine.name }}</td>
+        <td>{{ medicine.brand }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">Onaylı glutensiz ilaç bulunamadı.</div>
+{% endif %}
+{% endblock %} 

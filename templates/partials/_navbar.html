@@ -1,0 +1,79 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{% static 'colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği" height="48" class="me-2" style="max-height:48px;">
+      <span class="fw-bold">Ankara Çölyak Derneği</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Anasayfa</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dernegimizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Derneğimiz
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dernegimizDropdown">
+            <li><a class="dropdown-item" href="{% url 'hakkimizda' %}">Hakkımızda</a></li>
+            <li><a class="dropdown-item" href="{% url 'yonetim_kurulu' %}">Yönetim Kurulu</a></li>
+            <li><a class="dropdown-item" href="{% url 'dernegin_amaci' %}">Derneğin Amacı</a></li>
+            <li><a class="dropdown-item" href="{% url 'tarihce' %}">2004'den 2025'e</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="glutensizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Glutensiz
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="glutensizDropdown">
+            <li><a class="dropdown-item" href="{% url 'glutensiz_gida' %}">Glutensiz Gıda</a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_mekanlar' %}">Glutensiz Mekanlar</a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_oteller' %}">Glutensiz Oteller</a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_ilaclar' %}">Glutensiz İlaçlar</a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_tarifler' %}">Glutensiz Tarifler</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'basin_ve_yayinda_biz' %}">Basın ve Yayında Biz</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'uyelik' %}">Üyelik</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'iletisim' %}">İletişim</a>
+        </li>
+      </ul>
+      {% if user.is_authenticated and user.is_superuser %}
+        <li class="nav-item dropdown ms-3">
+          <a class="btn btn-danger dropdown-toggle" href="#" id="adminMainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Admin İşlemleri
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMainDropdown">
+            <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">Kullanıcılar</a></li>
+            <li><a class="dropdown-item" href="{% url 'change_password' %}">Şifre Değiştir</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="dropdown-header">Glutensiz</li>
+            <li><a class="dropdown-item" href="{% url 'admin_food_list' %}">Glutensiz Gıdalar</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_venue_list' %}">Glutensiz Mekanlar</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_hotel_list' %}">Glutensiz Oteller</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_medicine_list' %}">Glutensiz İlaçlar</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">Glutensiz Tarifler</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">İletişim Kutusu</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/admin/">Django Yönetim Paneli</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger" style="width:100%;text-align:left;">Çıkış Yap</button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      {% endif %}
+    </div>
+  </div>
+</nav> 

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Glutensiz Mekanlar</h1>
+<form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:300px;">
+  <div class="input-group">
+    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, iletişim veya adres ara...">
+  </div>
+  <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+</form>
+{% if venues %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>İsim</th>
+        <th>İletişim</th>
+        <th>Adres</th>
+        <th>Açıklama</th>
+        <th>Glutensiz Ürünler</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for venue in venues %}
+      <tr>
+        <td>{{ venue.name }}</td>
+        <td>{{ venue.contact }}</td>
+        <td>{{ venue.address }}</td>
+        <td>{{ venue.description }}</td>
+        <td>{{ venue.gluten_free_products }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">Onaylı glutensiz mekan bulunamadı.</div>
+{% endif %}
+{% endblock %} 

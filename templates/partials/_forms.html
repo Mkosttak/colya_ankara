@@ -1,0 +1,176 @@
+{% include 'partials/_messages.html' %}
+{% if form %}
+  <form method="post" class="needs-validation" novalidate id="main-form">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3" id="field-{{ field.name }}">
+        {{ field.label_tag }}
+        {% if field.name == 'brand' %}
+          <div class="input-group">
+            {{ field }}
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBrandModal" title="Yeni Marka Ekle">+</button>
+          </div>
+        {% elif field.name == 'category' %}
+          <div class="input-group">
+            {{ field }}
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
+          </div>
+        {% else %}
+          {{ field }}
+        {% endif %}
+        {% if field.help_text %}
+          <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
+        {% if field.errors %}
+          <div class="text-danger small">{{ field.errors|striptags }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Gönder</button>
+  </form>
+
+  <!-- Marka Ekle Modal -->
+  <div class="modal fade" id="addBrandModal" tabindex="-1" aria-labelledby="addBrandModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addBrandModalLabel">Yeni Marka Ekle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addBrandForm">
+            <div class="mb-3">
+              <label for="brandName" class="form-label">Marka Adı</label>
+              <input type="text" class="form-control" id="brandName" name="name" required>
+            </div>
+            <div id="brandAddMsg" class="text-success small"></div>
+            <button type="submit" class="btn btn-success">Ekle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kategori Ekle Modal -->
+  <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCategoryModalLabel">Yeni Kategori Ekle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addCategoryForm">
+            <div class="mb-3">
+              <label for="categoryName" class="form-label">Kategori Adı</label>
+              <input type="text" class="form-control" id="categoryName" name="name" required>
+            </div>
+            <div id="categoryAddMsg" class="text-success small"></div>
+            <button type="submit" class="btn btn-success">Ekle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Marka ekle
+    document.getElementById('addBrandForm').onsubmit = function(e) {
+      e.preventDefault();
+      var name = document.getElementById('brandName').value;
+      fetch("{% url 'add_brand_ajax' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'name=' + encodeURIComponent(name)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          var select = document.getElementById('id_brand');
+          var option = document.createElement('option');
+          option.value = data.id;
+          option.text = data.name;
+          option.selected = true;
+          select.appendChild(option);
+          document.getElementById('brandAddMsg').textContent = 'Marka eklendi!';
+          document.getElementById('brandName').value = '';
+          setTimeout(() => {
+            document.getElementById('brandAddMsg').textContent = '';
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addBrandModal'));
+            modal.hide();
+          }, 800);
+        } else {
+          document.getElementById('brandAddMsg').textContent = data.error || 'Hata oluştu.';
+        }
+      });
+    };
+    // Kategori ekle
+    document.getElementById('addCategoryForm').onsubmit = function(e) {
+      e.preventDefault();
+      var name = document.getElementById('categoryName').value;
+      fetch("{% url 'add_category_ajax' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'name=' + encodeURIComponent(name)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          var select = document.getElementById('id_category');
+          var option = document.createElement('option');
+          option.value = data.id;
+          option.text = data.name;
+          option.selected = true;
+          select.appendChild(option);
+          document.getElementById('categoryAddMsg').textContent = 'Kategori eklendi!';
+          document.getElementById('categoryName').value = '';
+          setTimeout(() => {
+            document.getElementById('categoryAddMsg').textContent = '';
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'));
+            modal.hide();
+          }, 800);
+        } else {
+          document.getElementById('categoryAddMsg').textContent = data.error || 'Hata oluştu.';
+        }
+      });
+    };
+
+    // Select2 başlat
+    function initSelect2() {
+      if (window.jQuery && $("#id_brand").length) {
+        $("#id_brand").select2({
+          width: '100%',
+          placeholder: 'Marka seçin',
+          allowClear: true,
+          language: 'tr'
+        });
+      }
+      if (window.jQuery && $("#id_category").length) {
+        $("#id_category").select2({
+          width: '100%',
+          placeholder: 'Kategori seçin',
+          allowClear: true,
+          language: 'tr'
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      initSelect2();
+    });
+    // Modal kapandığında select2 tekrar başlat (yeni eklenen option için)
+    document.getElementById('addBrandModal').addEventListener('hidden.bs.modal', function () {
+      initSelect2();
+    });
+    document.getElementById('addCategoryModal').addEventListener('hidden.bs.modal', function () {
+      initSelect2();
+    });
+  </script>
+{% else %}
+  <div class="alert alert-warning">Form bulunamadı.</div>
+{% endif %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Glutensiz Gıdalar</h1>
+<form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:400px;">
+  <div class="input-group">
+    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, marka veya kategori ara...">
+  </div>
+  <select name="brand" class="form-select" style="min-width:120px;">
+    <option value="">Tüm Markalar</option>
+    {% for brand in brands %}
+      <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="category" class="form-select" style="min-width:120px;">
+    <option value="">Tüm Kategoriler</option>
+    {% for category in categories %}
+      <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+</form>
+{% if foods %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>İsim</th>
+        <th>Marka</th>
+        <th>Kategori</th>
+        <th>Açıklama</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for food in foods %}
+      <tr>
+        <td>{{ food.name }}</td>
+        <td>{{ food.brand }}</td>
+        <td>{{ food.category }}</td>
+        <td>{{ food.description }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">Onaylı glutensiz gıda bulunamadı.</div>
+{% endif %}
+{% endblock %} 

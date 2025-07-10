@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2>Gluten-Free Medicines</h2>
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-center" style="min-width:350px;">
+    <div class="input-group">
+      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim veya marka ara...">
+    </div>
+    <select name="brand" class="form-select" style="min-width:120px;">
+      <option value="">Tüm Markalar</option>
+      {% for brand in brands %}
+        <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="is_approved" class="form-select" style="min-width:120px;">
+      <option value="">Hepsi</option>
+      <option value="true" {% if request.GET.is_approved == 'true' %}selected{% endif %}>Onaylı</option>
+      <option value="false" {% if request.GET.is_approved == 'false' %}selected{% endif %}>Onaysız</option>
+    </select>
+    <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+  </form>
+  <a href="{% url 'admin_medicine_create' %}" class="btn btn-success">Add New</a>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Brand</th>
+      <th>Approved</th>
+      <th>Ekleyen</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for medicine in medicines %}
+    <tr>
+      <td>{{ medicine.name }}</td>
+      <td>{{ medicine.brand }}</td>
+      <td>{% if medicine.is_approved %}Yes{% else %}No{% endif %}</td>
+      <td>{% if medicine.added_by %}{{ medicine.added_by }}{% else %}—{% endif %}</td>
+      <td>
+        <a href="{% url 'admin_medicine_update' medicine.pk %}" class="btn btn-sm btn-primary">Edit</a>
+        <a href="{% url 'admin_medicine_delete' medicine.pk %}" class="btn btn-sm btn-danger">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %} 

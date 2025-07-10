@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Glutensiz Gıdayı Sil</h2>
+<p><strong>{{ food.name }}</strong> kaydını silmek istediğinize emin misiniz?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Sil</button>
+  <a href="{% url 'admin_food_list' %}" class="btn btn-secondary">İptal</a>
+</form>
+{% endblock %} 
