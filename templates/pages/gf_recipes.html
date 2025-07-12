@@ -6,5 +6,6 @@
     <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim veya açıklama ara...">
   </div>
   <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+  <button class="btn btn-outline-danger" type="button" onclick="window.location.href=window.location.pathname">Filtreleri Temizle</button>
 </form>
 {% endblock %} 

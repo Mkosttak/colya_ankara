@@ -27,7 +27,10 @@ class UserAdmin(BaseUserAdmin):
 # Diğer admin kayıtları (önceki kodlarınız)
 @admin.register(GlutenFreeFood)
 class GlutenFreeFoodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'brand', 'category', 'is_approved', 'approved_at', 'added_by')
+    def category_list(self, obj):
+        return ", ".join([c.name for c in obj.category.all()])
+    category_list.short_description = 'Kategori'
+    list_display = ('name', 'brand', 'category_list', 'is_approved', 'approved_at', 'added_by')
     search_fields = ('name', 'brand__name', 'category__name')
     list_filter = ('is_approved',)
     verbose_name = 'Glutensiz Gıda'

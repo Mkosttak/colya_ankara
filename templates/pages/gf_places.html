@@ -1,20 +1,22 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <h1>Glutensiz Mekanlar</h1>
 <form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:300px;">
   <div class="input-group">
     <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, iletişim veya adres ara...">
   </div>
+  <select name="city" class="form-select" id="venue-filter-city" style="min-width:120px;"></select>
+  <select name="district" class="form-select" id="venue-filter-district" style="min-width:120px;"></select>
   <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+  <button class="btn btn-outline-danger" type="button" onclick="window.location.href=window.location.pathname">Filtreleri Temizle</button>
 </form>
 {% if venues %}
   <table class="table table-striped">
     <thead>
       <tr>
         <th>İsim</th>
-        <th>İletişim</th>
-        <th>Adres</th>
-        <th>Açıklama</th>
+        <th>İl/İlçe</th>
         <th>Glutensiz Ürünler</th>
       </tr>
     </thead>
@@ -22,9 +24,7 @@
       {% for venue in venues %}
       <tr>
         <td>{{ venue.name }}</td>
-        <td>{{ venue.contact }}</td>
-        <td>{{ venue.address }}</td>
-        <td>{{ venue.description }}</td>
+        <td>{{ venue.city }}{% if venue.district %} / {{ venue.district }}{% endif %}</td>
         <td>{{ venue.gluten_free_products }}</td>
       </tr>
       {% endfor %}
@@ -33,4 +33,44 @@
 {% else %}
   <div class="alert alert-info">Onaylı glutensiz mekan bulunamadı.</div>
 {% endif %}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/style.js' %}"></script>
+<script>
+  // Filtre selectlerini doldur
+  function fillVenueCityFilter() {
+    const citySelect = document.getElementById('venue-filter-city');
+    if (citySelect) {
+      citySelect.innerHTML = '<option value="">Tüm Şehirler</option>';
+      if (window.turkishCities) {
+        window.turkishCities.forEach(function(city) {
+          const option = document.createElement('option');
+          option.value = city;
+          option.text = city;
+          if (city === "{{ request.GET.city|default:'' }}") option.selected = true;
+          citySelect.appendChild(option);
+        });
+      }
+    }
+  }
+  function fillVenueDistrictFilter() {
+    const citySelect = document.getElementById('venue-filter-city');
+    const districtSelect = document.getElementById('venue-filter-district');
+    districtSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
+    if (citySelect && citySelect.value && window.cityDistricts && window.cityDistricts[citySelect.value]) {
+      window.cityDistricts[citySelect.value].forEach(function(district) {
+        const option = document.createElement('option');
+        option.value = district;
+        option.text = district;
+        if (district === "{{ request.GET.district|default:'' }}") option.selected = true;
+        districtSelect.appendChild(option);
+      });
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    fillVenueCityFilter();
+    fillVenueDistrictFilter();
+    document.getElementById('venue-filter-city').addEventListener('change', fillVenueDistrictFilter);
+  });
+</script>
 {% endblock %} 

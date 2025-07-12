@@ -2,29 +2,43 @@
 {% if form %}
   <form method="post" class="needs-validation" novalidate id="main-form">
     {% csrf_token %}
-    {% for field in form %}
-      <div class="mb-3" id="field-{{ field.name }}">
-        {{ field.label_tag }}
-        {% if field.name == 'brand' %}
-          <div class="input-group">
-            {{ field }}
-            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBrandModal" title="Yeni Marka Ekle">+</button>
-          </div>
-        {% elif field.name == 'category' %}
-          <div class="input-group">
-            {{ field }}
-            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
-          </div>
-        {% else %}
-          {{ field }}
-        {% endif %}
-        {% if field.help_text %}
-          <div class="form-text">{{ field.help_text }}</div>
-        {% endif %}
-        {% if field.errors %}
-          <div class="text-danger small">{{ field.errors|striptags }}</div>
-        {% endif %}
+    {% if form.city %}
+      <div class="mb-3" id="field-city">
+        {{ form.city.label_tag }}
+        {{ form.city }}
+        {% if form.city.help_text %}<div class="form-text">{{ form.city.help_text }}</div>{% endif %}
+        {% if form.city.errors %}<div class="text-danger small">{{ form.city.errors|striptags }}</div>{% endif %}
       </div>
+    {% endif %}
+    {% if form.district %}
+      <div class="mb-3" id="field-district" style="display: none;">
+        {{ form.district.label_tag }}
+        {{ form.district }}
+        {% if form.district.help_text %}<div class="form-text">{{ form.district.help_text }}</div>{% endif %}
+        {% if form.district.errors %}<div class="text-danger small">{{ form.district.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endif %}
+    {% for field in form %}
+      {% if field.name != 'city' and field.name != 'district' %}
+        <div class="mb-3" id="field-{{ field.name }}">
+          {{ field.label_tag }}
+          {% if field.name == 'brand' %}
+            <div class="input-group">
+              {{ field }}
+              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBrandModal" title="Yeni Marka Ekle">+</button>
+            </div>
+          {% elif field.name == 'category' %}
+            <div class="input-group">
+              {{ field }}
+              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
+            </div>
+          {% else %}
+            {{ field }}
+          {% endif %}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+        </div>
+      {% endif %}
     {% endfor %}
     <button type="submit" class="btn btn-primary">Gönder</button>
   </form>
@@ -74,6 +88,108 @@
   </div>
 
   <script>
+    // District field visibility control
+    function toggleDistrictField() {
+      const citySelect = document.getElementById('id_city');
+      const districtField = document.getElementById('field-district');
+      
+      if (citySelect && districtField) {
+        if (citySelect.value && citySelect.value !== '') {
+          districtField.style.display = 'block';
+          
+          // Check if "Diğer" is selected
+          if (citySelect.value === 'Diğer') {
+            // Show custom city input field and convert district to text input
+            showCustomCityInput();
+            convertDistrictToTextInput();
+          } else {
+            // Hide custom city input and convert district back to select dropdown
+            hideCustomCityInput();
+            convertDistrictToSelect();
+          }
+        } else {
+          districtField.style.display = 'none';
+          hideCustomCityInput();
+          // Clear district selection when city is cleared
+          const districtSelect = document.getElementById('id_district');
+          if (districtSelect) {
+            districtSelect.value = '';
+          }
+        }
+      }
+    }
+
+    function showCustomCityInput() {
+      const cityField = document.getElementById('field-city');
+      const existingCustomInput = document.getElementById('custom-city-input');
+      
+      if (cityField && !existingCustomInput) {
+        // Create custom city input field
+        const customInputDiv = document.createElement('div');
+        customInputDiv.className = 'mb-3';
+        customInputDiv.id = 'custom-city-input';
+        
+        const label = document.createElement('label');
+        label.htmlFor = 'custom_city_name';
+        label.className = 'form-label';
+        label.textContent = 'İl Adı';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'custom_city_name';
+        input.id = 'custom_city_name';
+        input.className = 'form-control';
+        input.placeholder = 'Özel şehir adını giriniz';
+        
+        customInputDiv.appendChild(label);
+        customInputDiv.appendChild(input);
+        
+        // Insert after the city field
+        cityField.parentNode.insertBefore(customInputDiv, cityField.nextSibling);
+      }
+    }
+
+    function hideCustomCityInput() {
+      const customInput = document.getElementById('custom-city-input');
+      if (customInput) {
+        customInput.remove();
+      }
+    }
+
+    function convertDistrictToTextInput() {
+      const districtField = document.getElementById('field-district');
+      const districtSelect = document.getElementById('id_district');
+      
+      if (districtField && districtSelect && districtSelect.tagName === 'SELECT') {
+        // Create text input
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.name = 'district';
+        textInput.id = 'id_district';
+        textInput.className = 'form-control';
+        textInput.placeholder = 'İlçe adını giriniz';
+        
+        // Replace select with text input
+        districtSelect.parentNode.replaceChild(textInput, districtSelect);
+      }
+    }
+
+    function convertDistrictToSelect() {
+      const districtField = document.getElementById('field-district');
+      const districtInput = document.getElementById('id_district');
+      
+      if (districtField && districtInput && districtInput.tagName === 'INPUT') {
+        // Create select dropdown
+        const selectInput = document.createElement('select');
+        selectInput.name = 'district';
+        selectInput.id = 'id_district';
+        selectInput.className = 'form-select';
+        
+        // Replace text input with select
+        districtInput.parentNode.replaceChild(selectInput, districtInput);
+      }
+    }
+
     // Marka ekle
     document.getElementById('addBrandForm').onsubmit = function(e) {
       e.preventDefault();
@@ -162,6 +278,14 @@
     }
     document.addEventListener('DOMContentLoaded', function() {
       initSelect2();
+      // Initialize district field visibility
+      toggleDistrictField();
+      
+      // Add event listener for city select change
+      const citySelect = document.getElementById('id_city');
+      if (citySelect) {
+        citySelect.addEventListener('change', toggleDistrictField);
+      }
     });
     // Modal kapandığında select2 tekrar başlat (yeni eklenen option için)
     document.getElementById('addBrandModal').addEventListener('hidden.bs.modal', function () {

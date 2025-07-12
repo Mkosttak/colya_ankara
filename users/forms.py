@@ -34,9 +34,18 @@ class UserPasswordChangeForm(PasswordChangeForm):
     new_password2 = forms.CharField(label='Yeni Şifre (Tekrar)', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Yeni Şifre (Tekrar)'}))
 
 class GlutenFreeFoodForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['brand'].required = True
+        self.fields['category'].required = True
+        self.fields['name'].error_messages = {'required': 'İsim alanı zorunludur.'}
+        self.fields['brand'].error_messages = {'required': 'Marka alanı zorunludur.'}
+        self.fields['category'].error_messages = {'required': 'Kategori alanı zorunludur.'}
+
     class Meta:
         model = GlutenFreeFood
-        exclude = ['approved_at', 'added_by']
+        fields = ['name', 'category', 'brand', 'description', 'is_approved']
         labels = {
             'name': 'İsim',
             'brand': 'Marka',
@@ -44,33 +53,113 @@ class GlutenFreeFoodForm(forms.ModelForm):
             'is_approved': 'Onaylı mı?',
             'description': 'Açıklama',
         }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand': forms.Select(attrs={'class': 'form-select', 'id': 'id_brand'}),
+            'category': forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_category'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 class GlutenFreeVenueForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['city'].required = True
+        self.fields['district'].required = True
+        self.fields['name'].error_messages = {'required': 'Mekan adı zorunludur.'}
+        self.fields['city'].error_messages = {'required': 'Şehir alanı zorunludur.'}
+        self.fields['district'].error_messages = {'required': 'İlçe alanı zorunludur.'}
+        # Add data-selected attribute for JS to use
+        if self.instance and self.instance.pk:
+            self.fields['city'].widget.attrs['data-selected'] = self.instance.city or ''
+            self.fields['district'].widget.attrs['data-selected'] = self.instance.district or ''
+        # self.fields['city'].empty_label = 'Şehir seçiniz'  # CharField için geçerli değil
+        # self.fields['city'].initial = None  # CharField için gereksiz
+
+    def clean(self):
+        cleaned_data = super().clean()
+        city = cleaned_data.get('city')
+        custom_city = self.data.get('custom_city_name')
+        if city == 'Diğer' and custom_city:
+            cleaned_data['city'] = custom_city
+        return cleaned_data
+
     class Meta:
         model = GlutenFreeVenue
-        exclude = ['approved_at', 'added_by']
+        fields = ['name', 'gluten_free_products', 'city', 'district', 'contact', 'address', 'website', 'description', 'is_approved']
         labels = {
-            'name': 'İsim',
+            'name': 'Mekan Adı',
+            'city': 'Şehir',
+            'district': 'İlçe',
             'is_approved': 'Onaylı mı?',
             'description': 'Açıklama',
             'contact': 'İletişim',
             'address': 'Adres',
+            'website': 'Web Sitesi',
             'gluten_free_products': 'Glutensiz Ürünler',
+        }
+        widgets = {
+            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}),
+            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'contact': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'gluten_free_products': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class GlutenFreeHotelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['city'].required = True
+        self.fields['district'].required = True
+        self.fields['name'].error_messages = {'required': 'Otel adı zorunludur.'}
+        self.fields['city'].error_messages = {'required': 'Şehir alanı zorunludur.'}
+        self.fields['district'].error_messages = {'required': 'İlçe alanı zorunludur.'}
+        # city için empty_label ve initial kaldırıldı (CharField olduğu için)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        city = cleaned_data.get('city')
+        custom_city = self.data.get('custom_city_name') if self.data else None
+        if city == 'Diğer' and custom_city:
+            cleaned_data['city'] = custom_city
+        return cleaned_data
+
     class Meta:
         model = GlutenFreeHotel
-        exclude = ['approved_at', 'added_by']
+        fields = ['name', 'city', 'district', 'contact', 'address', 'website', 'description', 'is_approved']
         labels = {
-            'name': 'İsim',
+            'name': 'Otel Adı',
+            'city': 'Şehir',
+            'district': 'İlçe',
             'is_approved': 'Onaylı mı?',
             'description': 'Açıklama',
             'contact': 'İletişim',
             'address': 'Adres',
+            'website': 'Web Sitesi',
+        }
+        widgets = {
+            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}),
+            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'contact': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
         }
 
 class GlutenFreeMedicineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['brand'].required = True
+        self.fields['name'].error_messages = {'required': 'İsim alanı zorunludur.'}
+        self.fields['brand'].error_messages = {'required': 'Marka alanı zorunludur.'}
+
     class Meta:
         model = GlutenFreeMedicine
         exclude = ['approved_at', 'added_by']
@@ -79,13 +168,29 @@ class GlutenFreeMedicineForm(forms.ModelForm):
             'brand': 'Marka',
             'is_approved': 'Onaylı mı?',
         }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand': forms.Select(attrs={'class': 'form-select', 'id': 'id_brand'}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 class GlutenFreeRecipeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['name'].error_messages = {'required': 'Tarif adı zorunludur.'}
+
     class Meta:
         model = GlutenFreeRecipe
         exclude = ['approved_at', 'added_by']
         labels = {
-            'name': 'İsim',
+            'name': 'Tarif Adı',
             'description': 'Açıklama',
             'created_at': 'Oluşturulma Tarihi',
+            'is_approved': 'Onaylı mı?',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import ContactMessageForm
-from users.models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine
+from users.models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, Brand, Category
 from .models import ContactMessage
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+from django.db import models
 
 def home(request):
     return render(request, 'pages/home.html')
@@ -23,8 +24,23 @@ def tarihce(request):
     return render(request, 'pages/history.html')
 
 def glutensiz_gida(request):
-    foods = GlutenFreeFood.objects.filter(is_approved=True)
-    return render(request, 'pages/gf_food.html', {'foods': foods})
+    foods = GlutenFreeFood.objects.filter(is_approved=True).select_related('brand').prefetch_related('category')
+    brands = Brand.objects.all()
+    categories = Category.objects.all()
+    q = request.GET.get('q')
+    brand_id = request.GET.get('brand')
+    category_id = request.GET.get('category')
+    if q:
+        foods = foods.filter(
+            models.Q(name__icontains=q) |
+            models.Q(brand__name__icontains=q) |
+            models.Q(category__name__icontains=q)
+        ).distinct()
+    if brand_id:
+        foods = foods.filter(brand_id=brand_id)
+    if category_id:
+        foods = foods.filter(category__id=category_id)
+    return render(request, 'pages/gf_food.html', {'foods': foods, 'brands': brands, 'categories': categories})
 
 def glutensiz_mekanlar(request):
     venues = GlutenFreeVenue.objects.filter(is_approved=True)

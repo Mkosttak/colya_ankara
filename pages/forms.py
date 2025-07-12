@@ -11,6 +11,21 @@ class ContactMessageForm(forms.ModelForm):
             'subject': 'Konu',
             'message': 'Mesaj',
         }
+        error_messages = {
+            'name': {
+                'required': 'Ad Soyad alanı zorunludur.'
+            },
+            'email': {
+                'required': 'E-posta alanı zorunludur.',
+                'invalid': 'Geçerli bir e-posta adresi giriniz.'
+            },
+            'subject': {
+                'required': 'Konu alanı zorunludur.'
+            },
+            'message': {
+                'required': 'Mesaj alanı zorunludur.'
+            },
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adınız ve Soyadınız'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'E-posta adresiniz'}),

@@ -43,55 +43,61 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
 class Brand(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Marka Adı")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Brand Name")
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Kategori Adı")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Category Name")
     def __str__(self):
         return self.name
 
 class GlutenFreeFood(models.Model):
     name = models.CharField(max_length=100)
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Marka")
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Kategori")
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
+    category = models.ManyToManyField(Category, blank=True, verbose_name="Category")
     is_approved = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
     approved_at = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen Kullanıcı')
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
     def __str__(self):
         return self.name
 
 class GlutenFreeVenue(models.Model):
     name = models.CharField(max_length=100)
+    city = models.CharField(max_length=30, verbose_name="City")
+    district = models.CharField(max_length=50, blank=True, null=True, verbose_name="District")
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
     description = models.TextField(blank=True, null=True)
     contact = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=300, blank=True, null=True)
+    website = models.URLField(blank=True, null=True, verbose_name="Web Sitesi")
     gluten_free_products = models.TextField(blank=True, null=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen Kullanıcı')
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
     def __str__(self):
         return self.name
 
 class GlutenFreeHotel(models.Model):
     name = models.CharField(max_length=100)
+    city = models.CharField(max_length=30, verbose_name="City")
+    district = models.CharField(max_length=50, blank=True, null=True, verbose_name="District")
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
     description = models.TextField(blank=True, null=True)
     contact = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=300, blank=True, null=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen Kullanıcı')
+    website = models.URLField(blank=True, null=True, verbose_name="Website")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
     def __str__(self):
         return self.name
 
 class GlutenFreeMedicine(models.Model):
     name = models.CharField(max_length=100)
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Marka")
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen Kullanıcı')
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
     def __str__(self):
         return self.name
 
@@ -101,6 +107,6 @@ class GlutenFreeRecipe(models.Model):
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen Kullanıcı')
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
     def __str__(self):
         return self.name

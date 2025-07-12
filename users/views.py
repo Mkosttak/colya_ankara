@@ -8,10 +8,11 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import UserPasswordChangeForm
 from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe
 from .forms import GlutenFreeFoodForm, GlutenFreeVenueForm, GlutenFreeHotelForm, GlutenFreeMedicineForm, GlutenFreeRecipeForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from .models import Brand, Category
-from django.db import models
+from django.db.models import Q, QuerySet
 from .models import User
+from typing import Any
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -54,16 +55,16 @@ def superuser_required(view_func):
 # GlutenFreeFood CRUD
 @superuser_required
 def admin_food_list(request):
-    foods = GlutenFreeFood.objects.all()
+    foods = GlutenFreeFood.objects.all()  # type: ignore
     q = request.GET.get('q')
     brand_id = request.GET.get('brand')
     category_id = request.GET.get('category')
     is_approved = request.GET.get('is_approved')
     if q:
         foods = foods.filter(
-            models.Q(name__icontains=q) |
-            models.Q(brand__name__icontains=q) |
-            models.Q(category__name__icontains=q)
+            Q(name__icontains=q) |
+            Q(brand__name__icontains=q) |
+            Q(category__name__icontains=q)
         )
     if brand_id:
         foods = foods.filter(brand_id=brand_id)
@@ -71,8 +72,8 @@ def admin_food_list(request):
         foods = foods.filter(category_id=category_id)
     if is_approved in ['true', 'false']:
         foods = foods.filter(is_approved=(is_approved == 'true'))
-    brands = Brand.objects.all()
-    categories = Category.objects.all()
+    brands = Brand.objects.all()  # type: ignore
+    categories = Category.objects.all()  # type: ignore
     return render(request, 'users/admin_food_list.html', {'foods': foods, 'brands': brands, 'categories': categories, 'request': request})
 
 @superuser_required
@@ -111,13 +112,19 @@ def admin_food_delete(request, pk):
 def admin_venue_list(request):
     venues = GlutenFreeVenue.objects.all()
     q = request.GET.get('q')
+    city = request.GET.get('city')
+    district = request.GET.get('district')
     is_approved = request.GET.get('is_approved')
     if q:
         venues = venues.filter(
-            models.Q(name__icontains=q) |
-            models.Q(contact__icontains=q) |
-            models.Q(address__icontains=q)
+            Q(name__icontains=q) |
+            Q(contact__icontains=q) |
+            Q(address__icontains=q)
         )
+    if city:
+        venues = venues.filter(city=city)
+    if district:
+        venues = venues.filter(district=district)
     if is_approved in ['true', 'false']:
         venues = venues.filter(is_approved=(is_approved == 'true'))
     return render(request, 'users/admin_venue_list.html', {'venues': venues, 'request': request})
@@ -158,13 +165,19 @@ def admin_venue_delete(request, pk):
 def admin_hotel_list(request):
     hotels = GlutenFreeHotel.objects.all()
     q = request.GET.get('q')
+    city = request.GET.get('city')
+    district = request.GET.get('district')
     is_approved = request.GET.get('is_approved')
     if q:
         hotels = hotels.filter(
-            models.Q(name__icontains=q) |
-            models.Q(contact__icontains=q) |
-            models.Q(address__icontains=q)
+            Q(name__icontains=q) |
+            Q(contact__icontains=q) |
+            Q(address__icontains=q)
         )
+    if city:
+        hotels = hotels.filter(city=city)
+    if district:
+        hotels = hotels.filter(district=district)
     if is_approved in ['true', 'false']:
         hotels = hotels.filter(is_approved=(is_approved == 'true'))
     return render(request, 'users/admin_hotel_list.html', {'hotels': hotels, 'request': request})
@@ -174,7 +187,10 @@ def admin_hotel_create(request):
     if request.method == 'POST':
         form = GlutenFreeHotelForm(request.POST)
         if form.is_valid():
-            form.save()
+            hotel = form.save(commit=False)
+            hotel.added_by = request.user
+            hotel.save()
+            form.save_m2m()
             return redirect('admin_hotel_list')
     else:
         form = GlutenFreeHotelForm()
@@ -186,7 +202,11 @@ def admin_hotel_update(request, pk):
     if request.method == 'POST':
         form = GlutenFreeHotelForm(request.POST, instance=hotel)
         if form.is_valid():
-            form.save()
+            hotel = form.save(commit=False)
+            if not hotel.added_by:
+                hotel.added_by = request.user
+            hotel.save()
+            form.save_m2m()
             return redirect('admin_hotel_list')
     else:
         form = GlutenFreeHotelForm(instance=hotel)
@@ -209,8 +229,8 @@ def admin_medicine_list(request):
     is_approved = request.GET.get('is_approved')
     if q:
         medicines = medicines.filter(
-            models.Q(name__icontains=q) |
-            models.Q(brand__name__icontains=q)
+            Q(name__icontains=q) |
+            Q(brand__name__icontains=q)
         )
     if brand_id:
         medicines = medicines.filter(brand_id=brand_id)
@@ -258,8 +278,8 @@ def admin_recipe_list(request):
     is_approved = request.GET.get('is_approved')
     if q:
         recipes = recipes.filter(
-            models.Q(name__icontains=q) |
-            models.Q(description__icontains=q)
+            Q(name__icontains=q) |
+            Q(description__icontains=q)
         )
     if is_approved in ['true', 'false']:
         recipes = recipes.filter(is_approved=(is_approved == 'true'))

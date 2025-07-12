@@ -3,7 +3,7 @@
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="/">
       <img src="{% static 'logo/colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği" height="48" class="me-2" style="max-height:48px;">
-      <span class="fw-bold">Ankara Çölyak Derneği</span>
+
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -58,29 +58,27 @@
               <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">Glutensiz Tarifler</a></li>
             </ul>
           </li>
+          <li class="nav-item dropdown ms-3">
+            <a class="btn btn-danger dropdown-toggle" href="#" id="adminMainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Admin İşlemleri
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMainDropdown">
+              <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">Kullanıcılar</a></li>
+              <li><a class="dropdown-item" href="{% url 'change_password' %}">Şifre Değiştir</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">Admin İletişim</a></li>
+              <li><a class="dropdown-item" href="/admin/">Django Yönetim Paneli</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item text-danger" style="width:100%;text-align:left;">Çıkış Yap</button>
+                </form>
+              </li>
+            </ul>
+          </li>
         {% endif %}
       </ul>
-      {% if user.is_authenticated and user.is_superuser %}
-        <li class="nav-item dropdown ms-3">
-          <a class="btn btn-danger dropdown-toggle" href="#" id="adminMainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Admin İşlemleri
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMainDropdown">
-            <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">Kullanıcılar</a></li>
-            <li><a class="dropdown-item" href="{% url 'change_password' %}">Şifre Değiştir</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">Admin İletişim</a></li>
-            <li><a class="dropdown-item" href="/admin/">Django Yönetim Paneli</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="dropdown-item text-danger" style="width:100%;text-align:left;">Çıkış Yap</button>
-              </form>
-            </li>
-          </ul>
-        </li>
-      {% endif %}
     </div>
   </div>
 </nav>
