@@ -1,47 +1,230 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<h1>Glutensiz Gıdalar</h1>
-<form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:400px;">
-  <div class="input-group">
-    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, marka veya kategori ara...">
+<div class="page-header">
+  <div class="container">
+    <h1>Glutensiz Gıdalar</h1>
+    <p>Güvenilir ve onaylı glutensiz gıda ürünlerini keşfedin.</p>
   </div>
-  <select name="brand" class="form-select" style="min-width:120px;">
-    <option value="">Tüm Markalar</option>
-    {% for brand in brands %}
-      <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
-    {% endfor %}
-  </select>
-  <select name="category" class="form-select" style="min-width:120px;">
-    <option value="">Tüm Kategoriler</option>
-    {% for category in categories %}
-      <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
-    {% endfor %}
-  </select>
-  <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
-  <button class="btn btn-outline-danger" type="button" onclick="window.location.href=window.location.pathname">Filtreleri Temizle</button>
-</form>
-{% if foods %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>İsim</th>
-        <th>Marka</th>
-        <th>Kategori</th>
-        <th>Açıklama</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for food in foods %}
-      <tr>
-        <td>{{ food.name }}</td>
-        <td>{{ food.brand }}</td>
-        <td>{% for cat in food.category.all %}{% if not forloop.first %}, {% endif %}{{ cat.name }}{% endfor %}</td>
-        <td>{{ food.description }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <div class="alert alert-info">Onaylı glutensiz gıda bulunamadı.</div>
-{% endif %}
+</div>
+
+<div class="container">
+  <!-- Filtre Bölümü -->
+  <div class="filter-section">
+    <form method="get" class="filter-form">
+      <div class="filter-group">
+        <label class="filter-label">Arama</label>
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="filter-input" placeholder="İsim, marka veya kategori ara...">
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Marka</label>
+        <select name="brand" class="filter-input" id="food-brand-filter">
+          <option value="">Tüm Markalar</option>
+          {% for brand in brands %}
+            <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Kategori</label>
+        <select name="category" class="filter-input" id="food-category-filter">
+          <option value="">Tüm Kategoriler</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search me-1"></i>Filtrele
+          </button>
+          <button class="btn btn-outline-secondary" type="button" onclick="window.location.href=window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>Temizle
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sonuç Sayısı -->
+  {% if grouped_foods %}
+    <div class="results-info mb-3">
+      <p class="text-muted mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        Toplam {{ foods|length }} glutensiz gıda ürünü bulundu.
+      </p>
+    </div>
+  {% endif %}
+
+  <!-- Sonuçlar -->
+  {% if grouped_foods %}
+    {% if grouped_foods.type == 'flat' %}
+      <div class="category-section">
+        <h3 class="category-title">
+          {% if grouped_foods.selected_brand and grouped_foods.selected_category %}
+            {{ grouped_foods.selected_brand.name }} - {{ grouped_foods.selected_category.name }}
+          {% elif grouped_foods.selected_category %}
+            {{ grouped_foods.selected_category.name }}
+          {% endif %}
+        </h3>
+        <div class="food-grid">
+          {% for food in grouped_foods.foods %}
+            <div class="food-card">
+              <div class="food-card-body">
+                <h5 class="food-name">{{ food.name }}</h5>
+                <div class="food-details">
+                  <div class="detail-item">
+                    <i class="bi bi-tag me-2"></i>
+                    <span class="detail-label">Marka:</span>
+                    <span class="detail-value">{{ food.brand }}</span>
+                  </div>
+                  {% if food.description %}
+                  <div class="detail-item">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span class="detail-label">Açıklama:</span>
+                    <p class="detail-description">{{ food.description }}</p>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif grouped_foods.type == 'category' %}
+      {% if grouped_foods.selected_brand %}
+        <div class="category-section">
+          <h3 class="category-title">{{ grouped_foods.selected_brand.name }}</h3>
+          {% for category_name, category_foods in grouped_foods.categories.items %}
+            <h5 class="brand-subtitle">{{ category_name }}</h5>
+            <div class="food-grid">
+              {% for food in category_foods %}
+                <div class="food-card">
+                  <div class="food-card-body">
+                    <h5 class="food-name">{{ food.name }}</h5>
+                    <div class="food-details">
+                      <div class="detail-item">
+                        <i class="bi bi-tag me-2"></i>
+                        <span class="detail-label">Marka:</span>
+                        <span class="detail-value">{{ food.brand }}</span>
+                      </div>
+                      {% if food.description %}
+                      <div class="detail-item">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <span class="detail-label">Açıklama:</span>
+                        <p class="detail-description">{{ food.description }}</p>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% for category_name, category_foods in grouped_foods.categories.items %}
+          <div class="category-section">
+            <h3 class="category-title">{{ category_name }}</h3>
+            <div class="food-grid">
+              {% for food in category_foods %}
+                <div class="food-card">
+                  <div class="food-card-body">
+                    <h5 class="food-name">{{ food.name }}</h5>
+                    <div class="food-details">
+                      <div class="detail-item">
+                        <i class="bi bi-tag me-2"></i>
+                        <span class="detail-label">Marka:</span>
+                        <span class="detail-value">{{ food.brand }}</span>
+                      </div>
+                      {% if food.description %}
+                      <div class="detail-item">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <span class="detail-label">Açıklama:</span>
+                        <p class="detail-description">{{ food.description }}</p>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% elif grouped_foods.type == 'brand' %}
+      <div class="category-section">
+        <h3 class="category-title">{{ grouped_foods.selected_category.name }}</h3>
+        {% for brand_name, brand_foods in grouped_foods.brands.items %}
+          <div class="food-group-title">{{ brand_name }}</div>
+          <div class="food-grid">
+            {% for food in brand_foods %}
+              <div class="food-card">
+                <div class="food-card-body">
+                  <h5 class="food-name">{{ food.name }}</h5>
+                  <div class="food-details">
+                    <div class="detail-item">
+                      <i class="bi bi-tag me-2"></i>
+                      <span class="detail-label">Marka:</span>
+                      <span class="detail-value">{{ food.brand }}</span>
+                    </div>
+                    {% if food.description %}
+                    <div class="detail-item">
+                      <i class="bi bi-info-circle me-2"></i>
+                      <span class="detail-label">Açıklama:</span>
+                      <p class="detail-description">{{ food.description }}</p>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center">
+        <div class="empty-state">
+          <i class="bi bi-basket text-muted" style="font-size: 3rem;"></i>
+          <h4 class="mt-3">Gıda Bulunamadı</h4>
+          <p class="text-muted">Arama kriterlerinize uygun onaylı glutensiz gıda bulunamadı.</p>
+          <button class="btn btn-outline-primary" onclick="window.location.href=window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>Filtreleri Temizle
+          </button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/style.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const brandSelect = document.getElementById('food-brand-filter');
+    const categorySelect = document.getElementById('food-category-filter');
+    
+    if (brandSelect) {
+      brandSelect.addEventListener('change', function() {
+        window.updateFoodFilters('brand');
+      });
+    }
+    
+    if (categorySelect) {
+      categorySelect.addEventListener('change', function() {
+        window.updateFoodFilters('category');
+      });
+    }
+  });
+</script>
+{% endblock %}
+
 {% endblock %} 

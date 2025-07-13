@@ -1,4 +1,142 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<h1>Ana Sayfa</h1>
+<div class="page-header">
+  <div class="container">
+    <h1>Ankara Çölyak Derneği</h1>
+    <p>Çölyak hastalarının yaşam kalitesini artırmak ve glutensiz yaşamı kolaylaştırmak için çalışıyoruz.</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row g-4">
+    <!-- Hızlı Erişim Kartları -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="card-icon mb-3">
+            <i class="bi bi-basket text-primary" style="font-size: 2.5rem;"></i>
+          </div>
+          <h5 class="card-title">Glutensiz Gıda</h5>
+          <p class="card-text">Onaylı glutensiz gıda ürünlerini keşfedin.</p>
+          <a href="{% url 'glutensiz_gida' %}" class="btn btn-primary btn-sm">Görüntüle</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="card-icon mb-3">
+            <i class="bi bi-geo-alt text-success" style="font-size: 2.5rem;"></i>
+          </div>
+          <h5 class="card-title">Glutensiz Mekanlar</h5>
+          <p class="card-text">Güvenilir glutensiz restoran ve kafeler.</p>
+          <a href="{% url 'glutensiz_mekanlar' %}" class="btn btn-success btn-sm">Görüntüle</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="card-icon mb-3">
+            <i class="bi bi-building text-info" style="font-size: 2.5rem;"></i>
+          </div>
+          <h5 class="card-title">Glutensiz Oteller</h5>
+          <p class="card-text">Glutensiz menü seçenekli oteller.</p>
+          <a href="{% url 'glutensiz_oteller' %}" class="btn btn-info btn-sm">Görüntüle</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="card-icon mb-3">
+            <i class="bi bi-capsule text-warning" style="font-size: 2.5rem;"></i>
+          </div>
+          <h5 class="card-title">Glutensiz İlaçlar</h5>
+          <p class="card-text">Glutensiz ilaç listesi ve bilgiler.</p>
+          <a href="{% url 'glutensiz_ilaclar' %}" class="btn btn-warning btn-sm">Görüntüle</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hakkımızda Bölümü -->
+  <div class="row mt-5">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h3>Derneğimiz Hakkında</h3>
+          <p>Ankara Çölyak Derneği, çölyak hastalarının yaşam kalitesini artırmak ve glutensiz yaşamı kolaylaştırmak amacıyla kurulmuş bir sivil toplum kuruluşudur.</p>
+          <p>Derneğimiz, çölyak hastalarına ve ailelerine destek sağlamak, toplumda çölyak hastalığı hakkında farkındalık yaratmak ve glutensiz ürünlere erişimi kolaylaştırmak için çalışmaktadır.</p>
+          <a href="{% url 'hakkimizda' %}" class="btn btn-outline-primary">Daha Fazla Bilgi</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h4>Hızlı İletişim</h4>
+          <div class="contact-info">
+            <div class="contact-item mb-3">
+              <i class="bi bi-envelope text-primary me-2"></i>
+              <span>info@ankara-colyak.org</span>
+            </div>
+            <div class="contact-item mb-3">
+              <i class="bi bi-telephone text-primary me-2"></i>
+              <span>+90 312 XXX XX XX</span>
+            </div>
+            <div class="contact-item mb-3">
+              <i class="bi bi-geo-alt text-primary me-2"></i>
+              <span>Ankara, Türkiye</span>
+            </div>
+          </div>
+          <a href="{% url 'iletisim' %}" class="btn btn-primary w-100">İletişim Formu</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- İstatistikler -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center">
+          <h3 class="mb-4">Derneğimizin Rakamlarla Başarıları</h3>
+          <div class="row g-4">
+            <div class="col-md-3">
+              <div class="stat-item">
+                <div class="stat-number text-primary">500+</div>
+                <div class="stat-label">Üye</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <div class="stat-number text-success">1000+</div>
+                <div class="stat-label">Glutensiz Ürün</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <div class="stat-number text-info">200+</div>
+                <div class="stat-label">Mekan</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <div class="stat-number text-warning">20+</div>
+                <div class="stat-label">Yıllık Deneyim</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %} 

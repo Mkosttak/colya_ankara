@@ -13,6 +13,7 @@ urlpatterns = [
     path("dernegimiz/tarihce/", views.tarihce, name="tarihce"),
     # Glutensiz
     path('glutensiz/gida/', views.glutensiz_gida, name='glutensiz_gida'),
+    path('glutensiz/gida/filter-options/', views.get_filter_options, name='get_filter_options'),
     path('glutensiz/mekanlar/', views.glutensiz_mekanlar, name='glutensiz_mekanlar'),
     path('glutensiz/oteller/', views.glutensiz_oteller, name='glutensiz_oteller'),
     path('glutensiz/ilaclar/', views.glutensiz_ilaclar, name='glutensiz_ilaclar'),

@@ -233,11 +233,365 @@ function hideCustomCityInput() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    fillCitySelect();
-    const citySelect = document.getElementById('id_city');
-    if (citySelect) {
-        citySelect.addEventListener('change', updateDistricts);
-        updateDistricts();
+// --- users/login.html ---
+// Giriş sayfası şifre göster/gizle fonksiyonu
+window.togglePassword = function() {
+  const passwordInput = document.getElementById('password');
+  const passwordIcon = document.getElementById('passwordIcon');
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    passwordIcon.classList.remove('bi-eye');
+    passwordIcon.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    passwordIcon.classList.remove('bi-eye-slash');
+    passwordIcon.classList.add('bi-eye');
+  }
+};
+
+// --- users/admin_hotel_list.html & pages/gf_hotels.html ---
+window.fillHotelCityFilter = function(selectedCity) {
+  const citySelect = document.getElementById('hotel-filter-city');
+  if (citySelect) {
+    citySelect.innerHTML = '<option value="">Tüm Şehirler</option>';
+    if (window.turkishCities) {
+      window.turkishCities.forEach(function(city) {
+        const option = document.createElement('option');
+        option.value = city;
+        option.text = city;
+        if (city === selectedCity) option.selected = true;
+        citySelect.appendChild(option);
+      });
     }
+  }
+};
+window.fillHotelDistrictFilter = function(selectedDistrict) {
+  const citySelect = document.getElementById('hotel-filter-city');
+  const districtSelect = document.getElementById('hotel-filter-district');
+  districtSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
+  if (citySelect && citySelect.value && window.cityDistricts && window.cityDistricts[citySelect.value]) {
+    window.cityDistricts[citySelect.value].forEach(function(district) {
+      const option = document.createElement('option');
+      option.value = district;
+      option.text = district;
+      if (district === selectedDistrict) option.selected = true;
+      districtSelect.appendChild(option);
+    });
+  }
+};
+window.showHotelDetails = function(name, city, district, contact, website) {
+  document.getElementById('hotelName').textContent = name;
+  document.getElementById('hotelLocation').textContent = city + (district ? ' / ' + district : '');
+  document.getElementById('hotelContact').textContent = contact || 'Bilgi yok';
+  if (website) {
+    document.getElementById('hotelWebsite').innerHTML = `<a href="${website}" target="_blank">${website}</a>`;
+  } else {
+    document.getElementById('hotelWebsite').textContent = 'Bilgi yok';
+  }
+  const modal = new bootstrap.Modal(document.getElementById('hotelDetailModal'));
+  modal.show();
+};
+
+// --- pages/gf_places.html & users/admin_venue_list.html ---
+window.fillVenueCityFilter = function(selectedCity) {
+  const citySelect = document.getElementById('venue-filter-city');
+  if (citySelect) {
+    citySelect.innerHTML = '<option value="">Tüm Şehirler</option>';
+    if (window.turkishCities) {
+      window.turkishCities.forEach(function(city) {
+        const option = document.createElement('option');
+        option.value = city;
+        option.text = city;
+        if (city === selectedCity) option.selected = true;
+        citySelect.appendChild(option);
+      });
+    }
+  }
+};
+window.fillVenueDistrictFilter = function(selectedDistrict) {
+  const citySelect = document.getElementById('venue-filter-city');
+  const districtSelect = document.getElementById('venue-filter-district');
+  districtSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
+  if (citySelect && citySelect.value && window.cityDistricts && window.cityDistricts[citySelect.value]) {
+    window.cityDistricts[citySelect.value].forEach(function(district) {
+      const option = document.createElement('option');
+      option.value = district;
+      option.text = district;
+      if (district === selectedDistrict) option.selected = true;
+      districtSelect.appendChild(option);
+    });
+  }
+};
+window.showVenueDetails = function(name, city, district, products) {
+  document.getElementById('venueName').textContent = name;
+  document.getElementById('venueLocation').textContent = city + (district ? ' / ' + district : '');
+  document.getElementById('venueProducts').textContent = products || 'Bilgi yok';
+  const modal = new bootstrap.Modal(document.getElementById('venueDetailModal'));
+  modal.show();
+};
+
+// --- pages/gf_recipes.html ---
+window.showRecipeDetails = function(name, description, ingredients, instructions) {
+  document.getElementById('recipeName').textContent = name;
+  document.getElementById('recipeDescription').textContent = description || 'Açıklama yok';
+  document.getElementById('recipeIngredients').textContent = ingredients || 'Malzeme listesi yok';
+  document.getElementById('recipeInstructions').textContent = instructions || 'Hazırlanış talimatı yok';
+  const modal = new bootstrap.Modal(document.getElementById('recipeDetailModal'));
+  modal.show();
+};
+
+// --- pages/gf_food.html ---
+// Dinamik filtreleme için fonksiyonlar
+window.updateFoodFilters = function(changed) {
+  const brandSelect = document.getElementById('food-brand-filter');
+  const categorySelect = document.getElementById('food-category-filter');
+  if (!brandSelect || !categorySelect) return;
+
+  if (changed === 'brand') {
+    const prevCategory = categorySelect.value;
+    const brandId = brandSelect.value;
+    if (!brandId) return;
+    fetch(`/glutensiz/gida/filter-options/?brand=${brandId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.categories) {
+          categorySelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
+          let found = false;
+          data.categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            if (prevCategory && prevCategory == category.id.toString()) {
+              option.selected = true;
+              found = true;
+            }
+            categorySelect.appendChild(option);
+          });
+          if (!found) categorySelect.value = '';
+        }
+      });
+  } else if (changed === 'category') {
+    const prevBrand = brandSelect.value;
+    const categoryId = categorySelect.value;
+    if (!categoryId) return;
+    fetch(`/glutensiz/gida/filter-options/?category=${categoryId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.brands) {
+          brandSelect.innerHTML = '<option value="">Tüm Markalar</option>';
+          let found = false;
+          data.brands.forEach(brand => {
+            const option = document.createElement('option');
+            option.value = brand.id;
+            option.textContent = brand.name;
+            if (prevBrand && prevBrand == brand.id.toString()) {
+              option.selected = true;
+              found = true;
+            }
+            brandSelect.appendChild(option);
+          });
+          if (!found) brandSelect.value = '';
+        }
+      });
+  }
+};
+
+// --- users/admin_hotel_form.html, users/admin_venue_form.html ---
+// Bu değişkenler template'ten window'a atanmalı. Template'te:
+// <script>window.selectedCity = "{{ form.instance.city|escapejs }}"; ...</script>
+// yerine, ilgili view'da context'e ekleyip burada window'a atayabilirsiniz.
+// Alternatif: Template'te <body> tag'ına data-selected-city gibi attribute ekleyip burada okuyabilirsiniz.
+// Şimdilik window.selectedCity, window.selectedDistrict, window.selectedCustomCity'nin atanmasını burada bırakıyoruz.
+
+// --- partials/_forms.html ---
+// Marka ve kategori ekleme, select2 başlatma, şehir-ilçe alanı kontrolü
+window.toggleDistrictField = function() {
+  const citySelect = document.getElementById('id_city');
+  const districtField = document.getElementById('field-district');
+  if (citySelect && districtField) {
+    if (citySelect.value && citySelect.value !== '') {
+      districtField.style.display = 'block';
+      if (citySelect.value === 'Diğer') {
+        window.showCustomCityInput();
+        window.convertDistrictToTextInput();
+      } else {
+        window.hideCustomCityInput();
+        window.convertDistrictToSelect();
+      }
+    } else {
+      districtField.style.display = 'none';
+      window.hideCustomCityInput();
+      const districtSelect = document.getElementById('id_district');
+      if (districtSelect) {
+        districtSelect.value = '';
+      }
+    }
+  }
+};
+window.showCustomCityInput = function() {
+  const cityField = document.getElementById('field-city');
+  const existingCustomInput = document.getElementById('custom-city-input');
+  if (cityField && !existingCustomInput) {
+    const customInputDiv = document.createElement('div');
+    customInputDiv.className = 'mb-3';
+    customInputDiv.id = 'custom-city-input';
+    const label = document.createElement('label');
+    label.htmlFor = 'custom_city_name';
+    label.className = 'form-label';
+    label.textContent = 'İl Adı';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'custom_city_name';
+    input.id = 'custom_city_name';
+    input.className = 'form-control';
+    input.placeholder = 'Özel şehir adını giriniz';
+    customInputDiv.appendChild(label);
+    customInputDiv.appendChild(input);
+    cityField.parentNode.insertBefore(customInputDiv, cityField.nextSibling);
+  }
+};
+window.hideCustomCityInput = function() {
+  const customInput = document.getElementById('custom-city-input');
+  if (customInput) {
+    customInput.remove();
+  }
+};
+window.convertDistrictToTextInput = function() {
+  const districtField = document.getElementById('field-district');
+  const districtSelect = document.getElementById('id_district');
+  if (districtField && districtSelect && districtSelect.tagName === 'SELECT') {
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.name = 'district';
+    textInput.id = 'id_district';
+    textInput.className = 'form-control';
+    textInput.placeholder = 'İlçe adını giriniz';
+    districtSelect.parentNode.replaceChild(textInput, districtSelect);
+  }
+};
+window.convertDistrictToSelect = function() {
+  const districtField = document.getElementById('field-district');
+  const districtInput = document.getElementById('id_district');
+  if (districtField && districtInput && districtInput.tagName === 'INPUT') {
+    const selectInput = document.createElement('select');
+    selectInput.name = 'district';
+    selectInput.id = 'id_district';
+    selectInput.className = 'form-select';
+    districtInput.parentNode.replaceChild(selectInput, districtInput);
+  }
+};
+window.initSelect2 = function() {
+  if (window.jQuery && $("#id_brand").length) {
+    $("#id_brand").select2({
+      width: '100%',
+      placeholder: 'Marka seçin',
+      allowClear: true,
+      language: 'tr'
+    });
+  }
+  if (window.jQuery && $("#id_category").length) {
+    $("#id_category").select2({
+      width: '100%',
+      placeholder: 'Kategori seçin',
+      allowClear: true,
+      language: 'tr'
+    });
+  }
+};
+document.addEventListener('DOMContentLoaded', function() {
+  window.initSelect2 && window.initSelect2();
+  window.toggleDistrictField && window.toggleDistrictField();
+  const citySelect = document.getElementById('id_city');
+  if (citySelect && window.toggleDistrictField) {
+    citySelect.addEventListener('change', window.toggleDistrictField);
+  }
+  // Modal kapandığında select2 tekrar başlat
+  const brandModal = document.getElementById('addBrandModal');
+  if (brandModal) {
+    brandModal.addEventListener('hidden.bs.modal', function () {
+      window.initSelect2();
+    });
+  }
+  const categoryModal = document.getElementById('addCategoryModal');
+  if (categoryModal) {
+    categoryModal.addEventListener('hidden.bs.modal', function () {
+      window.initSelect2();
+    });
+  }
 });
+// Marka ekle
+window.addBrandFormHandler = function(brandUrl) {
+  const form = document.getElementById('addBrandForm');
+  if (form) {
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      var name = document.getElementById('brandName').value;
+      fetch(brandUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'name=' + encodeURIComponent(name)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          var select = document.getElementById('id_brand');
+          var option = document.createElement('option');
+          option.value = data.id;
+          option.text = data.name;
+          option.selected = true;
+          select.appendChild(option);
+          document.getElementById('brandAddMsg').textContent = 'Marka eklendi!';
+          document.getElementById('brandName').value = '';
+          setTimeout(() => {
+            document.getElementById('brandAddMsg').textContent = '';
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addBrandModal'));
+            modal.hide();
+          }, 800);
+        } else {
+          document.getElementById('brandAddMsg').textContent = data.error || 'Hata oluştu.';
+        }
+      });
+    };
+  }
+};
+// Kategori ekle
+window.addCategoryFormHandler = function(categoryUrl) {
+  const form = document.getElementById('addCategoryForm');
+  if (form) {
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      var name = document.getElementById('categoryName').value;
+      fetch(categoryUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'name=' + encodeURIComponent(name)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          var select = document.getElementById('id_category');
+          var option = document.createElement('option');
+          option.value = data.id;
+          option.text = data.name;
+          option.selected = true;
+          select.appendChild(option);
+          document.getElementById('categoryAddMsg').textContent = 'Kategori eklendi!';
+          document.getElementById('categoryName').value = '';
+          setTimeout(() => {
+            document.getElementById('categoryAddMsg').textContent = '';
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'));
+            modal.hide();
+          }, 800);
+        } else {
+          document.getElementById('categoryAddMsg').textContent = data.error || 'Hata oluştu.';
+        }
+      });
+    };
+  }
+};

@@ -1,21 +1,152 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
-    <h2 class="mb-4 text-center">İletişim Formu</h2>
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="mb-3">
-          {{ field.label_tag }}
-          {{ field }}
-          {% if field.errors %}
-            <div class="text-danger small">{{ field.errors|striptags }}</div>
-          {% endif %}
+<div class="page-header">
+  <div class="container">
+    <h1>İletişim</h1>
+    <p>Bizimle iletişime geçin, sorularınızı yanıtlamaktan memnuniyet duyarız.</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="text-center mb-4">
+            <i class="bi bi-envelope text-primary me-2"></i>
+            İletişim Formu
+          </h3>
+          
+          <form method="post" novalidate class="contact-form">
+            {% csrf_token %}
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="{{ form.name.id_for_label }}" class="form-label">
+                    <i class="bi bi-person me-1"></i>Ad Soyad
+                  </label>
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                    <div class="form-error">{{ form.name.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="{{ form.email.id_for_label }}" class="form-label">
+                    <i class="bi bi-envelope me-1"></i>E-posta
+                  </label>
+                  {{ form.email }}
+                  {% if form.email.errors %}
+                    <div class="form-error">{{ form.email.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="{{ form.subject.id_for_label }}" class="form-label">
+                <i class="bi bi-chat-dots me-1"></i>Konu
+              </label>
+              {{ form.subject }}
+              {% if form.subject.errors %}
+                <div class="form-error">{{ form.subject.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group">
+              <label for="{{ form.message.id_for_label }}" class="form-label">
+                <i class="bi bi-chat-text me-1"></i>Mesajınız
+              </label>
+              {{ form.message }}
+              {% if form.message.errors %}
+                <div class="form-error">{{ form.message.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group text-center">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-send me-2"></i>Mesaj Gönder
+              </button>
+            </div>
+          </form>
         </div>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary w-100">Gönder</button>
-    </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- İletişim Bilgileri -->
+  <div class="row mt-5">
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="contact-icon mb-3">
+            <i class="bi bi-geo-alt text-primary"></i>
+          </div>
+          <h5>Adres</h5>
+          <p class="text-muted">Ankara, Türkiye</p>
+          <p class="text-muted small">Detaylı adres bilgisi için lütfen iletişime geçin.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="contact-icon mb-3">
+            <i class="bi bi-telephone text-success"></i>
+          </div>
+          <h5>Telefon</h5>
+          <p class="text-muted">+90 312 XXX XX XX</p>
+          <p class="text-muted small">Pazartesi - Cuma: 09:00 - 17:00</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="contact-icon mb-3">
+            <i class="bi bi-envelope text-info"></i>
+          </div>
+          <h5>E-posta</h5>
+          <p class="text-muted">info@ankara-colyak.org</p>
+          <p class="text-muted small">24 saat içinde yanıt veriyoruz.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sosyal Medya -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center">
+          <h4 class="mb-4">Sosyal Medyada Bizi Takip Edin</h4>
+          <div class="social-links">
+            <a href="#" class="social-link-large" title="Instagram">
+              <i class="bi bi-instagram"></i>
+              <span>Instagram</span>
+            </a>
+            <a href="#" class="social-link-large" title="Facebook">
+              <i class="bi bi-facebook"></i>
+              <span>Facebook</span>
+            </a>
+            <a href="#" class="social-link-large" title="Twitter">
+              <i class="bi bi-twitter-x"></i>
+              <span>Twitter</span>
+            </a>
+            <a href="#" class="social-link-large" title="YouTube">
+              <i class="bi bi-youtube"></i>
+              <span>YouTube</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %} 

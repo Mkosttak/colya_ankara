@@ -1,60 +1,170 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-  <h2>Glutensiz Gıdalar</h2>
-  <form method="get" class="d-flex flex-wrap gap-2 align-items-center" style="min-width:400px;">
-    <div class="input-group">
-      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, marka veya kategori ara...">
-    </div>
-    <select name="brand" class="form-select" style="min-width:120px;">
-      <option value="">Tüm Markalar</option>
-      {% for brand in brands %}
-        <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:'s' %}selected{% endif %}>{{ brand.name }}</option>
-      {% endfor %}
-    </select>
-    <select name="category" class="form-select" style="min-width:120px;">
-      <option value="">Tüm Kategoriler</option>
-      {% for category in categories %}
-        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
-      {% endfor %}
-    </select>
-    <select name="is_approved" class="form-select" style="min-width:120px;">
-      <option value="">Hepsi</option>
-      <option value="true" {% if request.GET.is_approved == 'true' %}selected{% endif %}>Onaylı</option>
-      <option value="false" {% if request.GET.is_approved == 'false' %}selected{% endif %}>Onaysız</option>
-    </select>
-    <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
-    <button class="btn btn-outline-danger" type="button" onclick="window.location.href=window.location.pathname">Filtreleri Temizle</button>
-  </form>
-  <a href="{% url 'admin_food_create' %}" class="btn btn-success">Yeni Ekle</a>
+<div class="page-header">
+  <div class="container">
+    <h1>Glutensiz Gıda Yönetimi</h1>
+    <p>Onaylı glutensiz gıda ürünlerini yönetin ve yeni ürünler ekleyin.</p>
+  </div>
 </div>
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Ekleyen</th>
-      <th>İsim</th>
-      <th>Kategori</th>
-      <th>Marka</th>
-      <th>Onaylı mı?</th>
-      <th>İşlemler</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for food in foods %}
-    <tr>
-      <td>{% if food.added_by %}{{ food.added_by }}{% else %}—{% endif %}</td>
-      <td>{{ food.name }}</td>
-      <td>{% for cat in food.category.all %}{% if not forloop.first %}, {% endif %}{{ cat.name }}{% endfor %}</td>
-      <td>{{ food.brand }}</td>
-      <td>{% if food.is_approved %}Evet{% else %}Hayır{% endif %}</td>
-      <td>
-        <a href="{% url 'admin_food_update' food.pk %}" class="btn btn-sm btn-primary">Düzenle</a>
-        <a href="{% url 'admin_food_delete' food.pk %}" class="btn btn-sm btn-danger">Sil</a>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+
+<div class="container">
+  <!-- Başlık ve Filtreler -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="mb-0">Gıda Listesi</h2>
+      <p class="text-muted mb-0">Toplam {{ foods|length }} ürün</p>
+    </div>
+    <a href="{% url 'admin_food_create' %}" class="btn btn-success">
+      <i class="bi bi-plus-circle me-2"></i>Yeni Ekle
+    </a>
+  </div>
+
+  <!-- Filtre Bölümü -->
+  <div class="filter-section">
+    <form method="get" class="filter-form">
+      <div class="filter-group">
+        <label class="filter-label">Arama</label>
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="filter-input" placeholder="Ürün adı, marka veya kategori ara...">
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Marka</label>
+        <select name="brand" class="filter-input">
+          <option value="">Tüm Markalar</option>
+          {% for brand in brands %}
+            <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Kategori</label>
+        <select name="category" class="filter-input">
+          <option value="">Tüm Kategoriler</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Onay Durumu</label>
+        <select name="is_approved" class="filter-input">
+          <option value="">Hepsi</option>
+          <option value="true" {% if request.GET.is_approved == 'true' %}selected{% endif %}>Onaylı</option>
+          <option value="false" {% if request.GET.is_approved == 'false' %}selected{% endif %}>Onaysız</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search me-1"></i>Filtrele
+          </button>
+          <button class="btn btn-outline-secondary" type="button" onclick="window.location.href=window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>Temizle
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tablo -->
+  {% if foods %}
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Ekleyen</th>
+            <th>Ürün Adı</th>
+            <th>Marka</th>
+            <th>Kategori</th>
+            <th>Onay Durumu</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for food in foods %}
+          <tr>
+            <td>
+              <div class="user-info">
+                {% if food.added_by %}
+                  <div class="user-name">{{ food.added_by }}</div>
+                  <div class="user-role text-muted small">Admin</div>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="food-info">
+                <div class="food-name">{{ food.name }}</div>
+                {% if food.description %}
+                  <div class="food-description text-muted small">{{ food.description|truncatechars:50 }}</div>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              {% if food.brand %}
+                <span class="brand-badge">{{ food.brand.name }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if food.category %}
+                <span class="category-badge">{{ food.category.name }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if food.is_approved %}
+                <span class="badge bg-success">
+                  <i class="bi bi-check-circle me-1"></i>Onaylı
+                </span>
+              {% else %}
+                <span class="badge bg-warning">
+                  <i class="bi bi-clock me-1"></i>Beklemede
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="action-buttons">
+                <a href="{% url 'admin_food_update' food.pk %}" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'admin_food_delete' food.pk %}" class="btn btn-sm btn-outline-danger" title="Sil">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center">
+        <div class="empty-state">
+          <i class="bi bi-basket text-muted" style="font-size: 3rem;"></i>
+          <h4 class="mt-3">Ürün Bulunamadı</h4>
+          <p class="text-muted">Arama kriterlerinize uygun ürün bulunamadı.</p>
+          <div class="mt-3">
+            <a href="{% url 'admin_food_create' %}" class="btn btn-primary me-2">
+              <i class="bi bi-plus-circle me-1"></i>İlk Ürünü Ekle
+            </a>
+            <button class="btn btn-outline-secondary" onclick="window.location.href=window.location.pathname">
+              <i class="bi bi-arrow-clockwise me-1"></i>Filtreleri Temizle
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
 {% endblock %} 

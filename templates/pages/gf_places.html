@@ -1,76 +1,141 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
-<h1>Glutensiz Mekanlar</h1>
-<form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-3" style="min-width:300px;">
-  <div class="input-group">
-    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="İsim, iletişim veya adres ara...">
+<div class="page-header">
+  <div class="container">
+    <h1>Glutensiz Mekanlar</h1>
+    <p>Güvenilir glutensiz menü seçenekleri sunan restoran ve kafeleri keşfedin.</p>
   </div>
-  <select name="city" class="form-select" id="venue-filter-city" style="min-width:120px;"></select>
-  <select name="district" class="form-select" id="venue-filter-district" style="min-width:120px;"></select>
-  <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
-  <button class="btn btn-outline-danger" type="button" onclick="window.location.href=window.location.pathname">Filtreleri Temizle</button>
-</form>
-{% if venues %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>İsim</th>
-        <th>İl/İlçe</th>
-        <th>Glutensiz Ürünler</th>
-      </tr>
-    </thead>
-    <tbody>
+</div>
+
+<div class="container">
+  <!-- Filtre Bölümü -->
+  <div class="filter-section">
+    <form method="get" class="filter-form">
+      <div class="filter-group">
+        <label class="filter-label">Arama</label>
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="filter-input" placeholder="İsim, iletişim veya adres ara...">
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Şehir</label>
+        <select name="city" class="filter-input" id="venue-filter-city">
+          <option value="">Tüm Şehirler</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">İlçe</label>
+        <select name="district" class="filter-input" id="venue-filter-district">
+          <option value="">Tüm İlçeler</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search me-1"></i>Filtrele
+          </button>
+          <button class="btn btn-outline-secondary" type="button" onclick="window.location.href=window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>Temizle
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sonuçlar -->
+  {% if venues %}
+    <div class="venue-grid">
       {% for venue in venues %}
-      <tr>
-        <td>{{ venue.name }}</td>
-        <td>{{ venue.city }}{% if venue.district %} / {{ venue.district }}{% endif %}</td>
-        <td>{{ venue.gluten_free_products }}</td>
-      </tr>
+      <div class="venue-card">
+        <div class="venue-card-body">
+          <h5 class="venue-name">{{ venue.name }}</h5>
+          
+          <div class="venue-details">
+            <div class="detail-item">
+              <i class="bi bi-geo-alt me-2"></i>
+              <span class="detail-label">Konum:</span>
+              <span class="detail-value">{{ venue.city }}{% if venue.district %} / {{ venue.district }}{% endif %}</span>
+            </div>
+            
+            {% if venue.gluten_free_products %}
+            <div class="detail-item">
+              <i class="bi bi-basket me-2"></i>
+              <span class="detail-label">Ürünler:</span>
+              <p class="detail-description">{{ venue.gluten_free_products }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="venue-card-footer">
+          <button class="btn btn-outline-primary btn-sm" onclick="window.showVenueDetails('{{ venue.name|escapejs }}', '{{ venue.city|escapejs }}', '{{ venue.district|default:""|escapejs }}', '{{ venue.gluten_free_products|default:""|escapejs }}')">
+            <i class="bi bi-eye me-1"></i>Detaylar
+          </button>
+        </div>
+      </div>
       {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <div class="alert alert-info">Onaylı glutensiz mekan bulunamadı.</div>
-{% endif %}
-{% endblock %}
-{% block extra_js %}
-<script src="{% static 'js/style.js' %}"></script>
-<script>
-  // Filtre selectlerini doldur
-  function fillVenueCityFilter() {
-    const citySelect = document.getElementById('venue-filter-city');
-    if (citySelect) {
-      citySelect.innerHTML = '<option value="">Tüm Şehirler</option>';
-      if (window.turkishCities) {
-        window.turkishCities.forEach(function(city) {
-          const option = document.createElement('option');
-          option.value = city;
-          option.text = city;
-          if (city === "{{ request.GET.city|default:'' }}") option.selected = true;
-          citySelect.appendChild(option);
-        });
-      }
-    }
-  }
-  function fillVenueDistrictFilter() {
-    const citySelect = document.getElementById('venue-filter-city');
-    const districtSelect = document.getElementById('venue-filter-district');
-    districtSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
-    if (citySelect && citySelect.value && window.cityDistricts && window.cityDistricts[citySelect.value]) {
-      window.cityDistricts[citySelect.value].forEach(function(district) {
-        const option = document.createElement('option');
-        option.value = district;
-        option.text = district;
-        if (district === "{{ request.GET.district|default:'' }}") option.selected = true;
-        districtSelect.appendChild(option);
-      });
-    }
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-    fillVenueCityFilter();
-    fillVenueDistrictFilter();
-    document.getElementById('venue-filter-city').addEventListener('change', fillVenueDistrictFilter);
-  });
-</script>
+    </div>
+    
+    <!-- Sonuç Sayısı -->
+    <div class="results-info mt-4">
+      <p class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Toplam {{ venues|length }} glutensiz mekan bulundu.
+      </p>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center">
+        <div class="empty-state">
+          <i class="bi bi-shop text-muted" style="font-size: 3rem;"></i>
+          <h4 class="mt-3">Mekan Bulunamadı</h4>
+          <p class="text-muted">Arama kriterlerinize uygun onaylı glutensiz mekan bulunamadı.</p>
+          <button class="btn btn-outline-primary" onclick="window.location.href=window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>Filtreleri Temizle
+          </button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Mekan Detay Modal -->
+<div class="modal fade" id="venueDetailModal" tabindex="-1" aria-labelledby="venueDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="venueDetailModalLabel">Mekan Detayları</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="venue-detail-content">
+          <div class="detail-section">
+            <h6><i class="bi bi-shop me-2"></i>Mekan Bilgileri</h6>
+            <div id="venueName" class="detail-item"></div>
+          </div>
+          
+          <div class="detail-section">
+            <h6><i class="bi bi-geo-alt me-2"></i>Konum</h6>
+            <div id="venueLocation" class="detail-item"></div>
+          </div>
+          
+          <div class="detail-section">
+            <h6><i class="bi bi-basket me-2"></i>Glutensiz Ürünler</h6>
+            <div id="venueProducts" class="detail-item"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %} 

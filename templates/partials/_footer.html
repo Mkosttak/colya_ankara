@@ -1,15 +1,32 @@
-<footer class="bg-light text-center text-lg-start mt-5 border-top">
-  <div class="container p-3">
-    <div class="row align-items-center">
-      <div class="col-md-6 text-md-start text-center mb-2 mb-md-0">
-        <span class="fw-bold">Ankara Çölyak Derneği</span> &copy; {{ now|date:'Y' }} Tüm hakları saklıdır.
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-info">
+        <div class="footer-brand">Ankara Çölyak Derneği</div>
+        <p class="footer-text">
+          Çölyak hastalarının yaşam kalitesini artırmak ve glutensiz yaşamı kolaylaştırmak için çalışıyoruz. 
+          Güvenilir bilgi ve destek için yanınızdayız.
+        </p>
       </div>
-      <div class="col-md-6 text-md-end text-center">
-        <!-- Sosyal medya ikonları için alan -->
-        <a href="#" class="text-secondary me-2" title="Instagram"><i class="bi bi-instagram"></i></a>
-        <a href="#" class="text-secondary me-2" title="Facebook"><i class="bi bi-facebook"></i></a>
-        <a href="#" class="text-secondary" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+      
+      <div class="footer-social">
+        <a href="#" class="social-link" title="Instagram" aria-label="Instagram">
+          <i class="bi bi-instagram"></i>
+        </a>
+        <a href="#" class="social-link" title="Facebook" aria-label="Facebook">
+          <i class="bi bi-facebook"></i>
+        </a>
+        <a href="#" class="social-link" title="Twitter" aria-label="Twitter">
+          <i class="bi bi-twitter-x"></i>
+        </a>
+        <a href="#" class="social-link" title="YouTube" aria-label="YouTube">
+          <i class="bi bi-youtube"></i>
+        </a>
       </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; {{ now|date:'Y' }} Ankara Çölyak Derneği. Tüm hakları saklıdır.</p>
     </div>
   </div>
 </footer>

@@ -1,78 +1,133 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+<nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="/">
-      <img src="{% static 'logo/colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği" height="48" class="me-2" style="max-height:48px;">
-
+    <a class="navbar-brand" href="/">
+      <img src="{% static 'logo/colyakdernegiankaralogo.png' %}" alt="Ankara Çölyak Derneği">
     </a>
+    
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+      <i class="bi bi-list"></i>
     </button>
+    
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Anasayfa</a>
+          <a class="nav-link" href="{% url 'home' %}">
+            <i class="bi bi-house-door me-1"></i>Anasayfa
+          </a>
         </li>
+        
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="dernegimizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Derneğimiz
+            <i class="bi bi-people me-1"></i>Derneğimiz
           </a>
           <ul class="dropdown-menu" aria-labelledby="dernegimizDropdown">
-            <li><a class="dropdown-item" href="{% url 'hakkimizda' %}">Hakkımızda</a></li>
-            <li><a class="dropdown-item" href="{% url 'yonetim_kurulu' %}">Yönetim Kurulu</a></li>
-            <li><a class="dropdown-item" href="{% url 'dernegin_amaci' %}">Derneğin Amacı</a></li>
-            <li><a class="dropdown-item" href="{% url 'tarihce' %}">2004'den 2025'e</a></li>
+            <li><a class="dropdown-item" href="{% url 'hakkimizda' %}">
+              <i class="bi bi-info-circle me-2"></i>Hakkımızda
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'yonetim_kurulu' %}">
+              <i class="bi bi-person-badge me-2"></i>Yönetim Kurulu
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'dernegin_amaci' %}">
+              <i class="bi bi-target me-2"></i>Derneğin Amacı
+            </a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'basin_ve_yayinda_biz' %}">
+                <i class="bi bi-newspaper me-1"></i>Basın ve Yayında Biz
+              </a>
+            </li>
+            <li><a class="dropdown-item" href="{% url 'tarihce' %}">
+              <i class="bi bi-clock-history me-2"></i>2004'den 2025'e
+            </a></li>
           </ul>
         </li>
+        
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="glutensizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Glutensiz
+            <i class="bi bi-shield-check me-1"></i>Glutensiz
           </a>
           <ul class="dropdown-menu" aria-labelledby="glutensizDropdown">
-            <li><a class="dropdown-item" href="{% url 'glutensiz_gida' %}">Glutensiz Gıda</a></li>
-            <li><a class="dropdown-item" href="{% url 'glutensiz_mekanlar' %}">Glutensiz Mekanlar</a></li>
-            <li><a class="dropdown-item" href="{% url 'glutensiz_oteller' %}">Glutensiz Oteller</a></li>
-            <li><a class="dropdown-item" href="{% url 'glutensiz_ilaclar' %}">Glutensiz İlaçlar</a></li>
-            <li><a class="dropdown-item" href="{% url 'glutensiz_tarifler' %}">Glutensiz Tarifler</a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_gida' %}">
+              <i class="bi bi-basket me-2"></i>Glutensiz Gıda
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_mekanlar' %}">
+              <i class="bi bi-geo-alt me-2"></i>Glutensiz Mekanlar
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_oteller' %}">
+              <i class="bi bi-building me-2"></i>Glutensiz Oteller
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_ilaclar' %}">
+              <i class="bi bi-capsule me-2"></i>Glutensiz İlaçlar
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'glutensiz_tarifler' %}">
+              <i class="bi bi-journal-text me-2"></i>Glutensiz Tarifler
+            </a></li>
           </ul>
         </li>
+        
+        
+        
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'basin_ve_yayinda_biz' %}">Basın ve Yayında Biz</a>
+          <a class="nav-link" href="{% url 'uyelik' %}">
+            <i class="bi bi-person-plus me-1"></i>Üyelik
+          </a>
         </li>
+        
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'uyelik' %}">Üyelik</a>
+          <a class="nav-link" href="{% url 'iletisim' %}">
+            <i class="bi bi-envelope me-1"></i>İletişim
+          </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'iletisim' %}">İletişim</a>
-        </li>
+        
         {% if user.is_authenticated and user.is_superuser %}
           <li class="nav-item dropdown">
-            <a class="btn btn-danger dropdown-toggle nav-link" href="#" id="adminGlutensizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Admin Glutensiz
+            <a class="btn btn-admin btn-admin-sm dropdown-toggle" href="#" id="adminGlutensizDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-shield-lock me-1"></i>Admin Glutensiz
             </a>
             <ul class="dropdown-menu" aria-labelledby="adminGlutensizDropdown">
-              <li><a class="dropdown-item" href="{% url 'admin_food_list' %}">Glutensiz Gıdalar</a></li>
-              <li><a class="dropdown-item" href="{% url 'admin_venue_list' %}">Glutensiz Mekanlar</a></li>
-              <li><a class="dropdown-item" href="{% url 'admin_hotel_list' %}">Glutensiz Oteller</a></li>
-              <li><a class="dropdown-item" href="{% url 'admin_medicine_list' %}">Glutensiz İlaçlar</a></li>
-              <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">Glutensiz Tarifler</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_food_list' %}">
+                <i class="bi bi-basket me-2"></i>Glutensiz Gıdalar
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_venue_list' %}">
+                <i class="bi bi-geo-alt me-2"></i>Glutensiz Mekanlar
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_hotel_list' %}">
+                <i class="bi bi-building me-2"></i>Glutensiz Oteller
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_medicine_list' %}">
+                <i class="bi bi-capsule me-2"></i>Glutensiz İlaçlar
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_recipe_list' %}">
+                <i class="bi bi-journal-text me-2"></i>Glutensiz Tarifler
+              </a></li>
             </ul>
           </li>
-          <li class="nav-item dropdown ms-3">
-            <a class="btn btn-danger dropdown-toggle" href="#" id="adminMainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Admin İşlemleri
+          
+          <li class="nav-item dropdown">
+            <a class="btn btn-admin btn-admin-sm dropdown-toggle" href="#" id="adminMainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-gear me-1"></i>Admin İşlemleri
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMainDropdown">
-              <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">Kullanıcılar</a></li>
-              <li><a class="dropdown-item" href="{% url 'change_password' %}">Şifre Değiştir</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_users_list' %}">
+                <i class="bi bi-people me-2"></i>Kullanıcılar
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'change_password' %}">
+                <i class="bi bi-key me-2"></i>Şifre Değiştir
+              </a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">Admin İletişim</a></li>
-              <li><a class="dropdown-item" href="/admin/">Django Yönetim Paneli</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_contact_list' %}">
+                <i class="bi bi-envelope me-2"></i>Admin İletişim
+              </a></li>
+              <li><a class="dropdown-item" href="/admin/">
+                <i class="bi bi-speedometer2 me-2"></i>Django Yönetim Paneli
+              </a></li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                   {% csrf_token %}
-                  <button type="submit" class="dropdown-item text-danger" style="width:100%;text-align:left;">Çıkış Yap</button>
+                  <button type="submit" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap
+                  </button>
                 </form>
               </li>
             </ul>
@@ -81,18 +136,4 @@
       </ul>
     </div>
   </div>
-</nav>
-<style>
-  .btn-danger.dropdown-toggle.nav-link {
-    color: #fff !important;
-    background-color: #dc3545 !important;
-    border-color: #dc3545 !important;
-  }
-  .btn-danger.dropdown-toggle.nav-link:hover,
-  .btn-danger.dropdown-toggle.nav-link:focus,
-  .btn-danger.dropdown-toggle.nav-link:active {
-    color: #fff !important;
-    background-color: #bb2d3b !important;
-    border-color: #b02a37 !important;
-  }
-</style> 
+</nav> 

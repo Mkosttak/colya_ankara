@@ -52,9 +52,19 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class FoodBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    def __str__(self):
+        return self.name
+
+class MedicineBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    def __str__(self):
+        return self.name
+
 class GlutenFreeFood(models.Model):
     name = models.CharField(max_length=100)
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
+    brand = models.ForeignKey(FoodBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
     category = models.ManyToManyField(Category, blank=True, verbose_name="Category")
     is_approved = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
@@ -94,7 +104,7 @@ class GlutenFreeHotel(models.Model):
 
 class GlutenFreeMedicine(models.Model):
     name = models.CharField(max_length=100)
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
+    brand = models.ForeignKey(MedicineBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
     added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')

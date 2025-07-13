@@ -7,10 +7,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  window.selectedCity = "{{ form.instance.city|escapejs }}";
-  window.selectedDistrict = "{{ form.instance.district|escapejs }}";
-  window.selectedCustomCity = "{{ form.instance.city|escapejs }}";
-</script>
 <script src="{% static 'js/style.js' %}"></script>
 {% endblock %} 
