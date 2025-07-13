@@ -118,8 +118,10 @@ class GlutenFreeVenue(models.Model):
 
 class GlutenFreeHotel(models.Model):
     name = models.CharField(max_length=100)
-    city = models.CharField(max_length=30, verbose_name="City")
-    district = models.CharField(max_length=50, blank=True, null=True, verbose_name="District")
+    # Şehir alanı, yukarıdaki listeden seçim yapılacak şekilde güncellendi
+    city = models.CharField(max_length=30, choices=TURKISH_CITIES, default='Ankara', verbose_name="Şehir")
+    # İlçe alanı güncellendi
+    district = models.CharField(max_length=50, blank=True, null=True, verbose_name="İlçe")
     is_approved = models.BooleanField(default=False)
     approved_at = models.DateTimeField(auto_now=True)
     description = models.TextField(blank=True, null=True)
