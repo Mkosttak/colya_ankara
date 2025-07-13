@@ -214,83 +214,79 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // --- Dinamik Şehir-İlçe Dropdown Kodu ---
+  // --- Dinamik Şehir-İlçe Dropdown Kodu (GÜNCELLENMİŞ HALİ) ---
 
-  // Formdaki şehir ve ilçe seçim alanlarını ID'leri ile yakalıyoruz
+  // Form elemanlarını yakala
   const citySelect = document.getElementById('id_city');
   const districtSelect = document.getElementById('id_district');
+  const cityOtherInput = document.getElementById('id_city_other');
+  const districtOtherInput = document.getElementById('id_district_other');
 
-  // Eğer bu iki element sayfada varsa, kodu çalıştır
-  if (citySelect && districtSelect) {
-      
-      // Düzenleme sayfasında, form ilk yüklendiğinde ilçe alanının dolu gelmesi için
-      // mevcut ilçe değerini bir değişkende saklayalım
-      const initialSelectedDistrict = districtSelect.value;
+  // Elementlerin etrafındaki sarmalayıcı div'leri yakala (Django'nun form yapısına göre)
+  const districtSelectWrapper = document.getElementById('field-district');
+  const cityOtherWrapper = document.getElementById('field-city_other');
+  const districtOtherWrapper = document.getElementById('field-district_other');
 
-      // İlçe dropdown'ının etrafındaki div'i bulalım (başlangıçta gizlemek/göstermek için)
-      // Bu genellikle form elemanının parent'ının parent'ı olur. Yapınıza göre ayarlayınız.
-      // Genellikle Django formları <p><label>...</label> <select>...</select></p> gibi bir yapı oluşturur.
-      // Veya bir <div> içinde olabilirler. Tarayıcının "Inspect" aracıyla doğru elementi bulun.
-      // Örnek olarak, ilçe select elementinin parent elementini hedef alıyoruz.
-      const districtWrapper = districtSelect.parentElement;
+  // Fonksiyon: Manuel giriş alanlarının görünürlüğünü ayarlar
+  function toggleManualInputs(show) {
+      if (show) {
+          // "Diğer" seçildiğinde:
+          if (districtSelectWrapper) districtSelectWrapper.style.display = 'none'; // İlçe dropdown'ını gizle
+          if (cityOtherWrapper) cityOtherWrapper.style.display = 'block'; // Manuel şehir input'unu göster
+          if (districtOtherWrapper) districtOtherWrapper.style.display = 'block'; // Manuel ilçe input'unu göster
+          if (cityOtherInput) cityOtherInput.required = true; // Manuel şehir alanını zorunlu yap
+      } else {
+          // "Diğer" dışında bir şehir seçildiğinde:
+          if (cityOtherWrapper) cityOtherWrapper.style.display = 'none'; // Manuel şehir input'unu gizle
+          if (districtOtherWrapper) districtOtherWrapper.style.display = 'none'; // Manuel ilçe input'unu gizle
+          if (cityOtherInput) cityOtherInput.required = false; // Manuel şehir alanını zorunlu yapma
+          if (cityOtherInput) cityOtherInput.value = ''; // Alanları temizle
+          if (districtOtherInput) districtOtherInput.value = ''; // Alanları temizle
+      }
+  }
 
-      // Şehir seçimi değiştiğinde tetiklenecek fonksiyon
+  // Fonksiyon: Sunucudan ilçeleri çeker ve dropdown'ı günceller
+  function updateDistricts(city) {
+      if (city && city !== 'Diğer') {
+          const url = `/users/ajax/get-districts/?city=${encodeURIComponent(city)}`;
+          fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                  if (districtSelectWrapper) districtSelectWrapper.style.display = 'block';
+                  districtSelect.innerHTML = '<option value="">İlçe seçiniz</option>';
+                  if (data.districts && data.districts.length > 0) {
+                      data.districts.forEach(function(district) {
+                          const option = new Option(district, district);
+                          districtSelect.add(option);
+                      });
+                  }
+              });
+      } else {
+           if (districtSelectWrapper) districtSelectWrapper.style.display = 'none';
+      }
+  }
+
+  // Sayfa ilk yüklendiğinde durumu kontrol et
+  if (citySelect) {
+      const initialCity = citySelect.value;
+      if (initialCity === 'Diğer') {
+          toggleManualInputs(true);
+          updateDistricts(null);
+      } else {
+          toggleManualInputs(false);
+          updateDistricts(initialCity);
+      }
+
+      // Şehir seçimi değiştiğinde olay dinleyici
       citySelect.addEventListener('change', function() {
           const selectedCity = this.value;
-          updateDistricts(selectedCity);
-      });
-
-      // Sayfa ilk yüklendiğinde mevcut şehir seçiliyse ilçeleri doldur
-      if (citySelect.value) {
-          updateDistricts(citySelect.value, initialSelectedDistrict);
-      } else {
-          // Şehir seçili değilse ilçe alanını gizle
-          if(districtWrapper) districtWrapper.style.display = 'none';
-      }
-
-      // Sunucudan ilçe verilerini çeken ve dropdown'ı güncelleyen fonksiyon
-      function updateDistricts(city, selectedDistrict = null) {
-          if (city) {
-              // AJAX isteği için hazırlanan URL
-              const url = `/users/ajax/get-districts/?city=${encodeURIComponent(city)}`;
-              
-              fetch(url)
-                  .then(response => response.json())
-                  .then(data => {
-                      // Önceki ilçe seçeneklerini temizle
-                      districtSelect.innerHTML = '<option value="">İlçe seçiniz</option>';
-                      
-                      // İlçe verisi boş değilse
-                      if (data.districts && data.districts.length > 0) {
-                          // Yeni ilçe seçeneklerini ekle
-                          data.districts.forEach(function(district) {
-                              // value ve text değeri aynı olan bir option oluştur
-                              const option = new Option(district, district);
-                              districtSelect.add(option);
-                          });
-
-                          // Eğer önceden seçili bir ilçe varsa, onu tekrar seç
-                          if (selectedDistrict) {
-                              districtSelect.value = selectedDistrict;
-                          }
-                          
-                          // İlçe alanını görünür yap
-                          if(districtWrapper) districtWrapper.style.display = 'block';
-                      } else {
-                           // O şehre ait ilçe bulunamazsa ilçe alanını gizle
-                           if(districtWrapper) districtWrapper.style.display = 'none';
-                      }
-                  })
-                  .catch(error => {
-                      console.error('İlçeler alınırken bir hata oluştu:', error);
-                      // Hata durumunda da ilçe alanını gizle
-                      if(districtWrapper) districtWrapper.style.display = 'none';
-                  });
+          if (selectedCity === 'Diğer') {
+              toggleManualInputs(true);
+              updateDistricts(null);
           } else {
-              // Şehir seçilmemişse ilçe alanını gizle ve temizle
-              districtSelect.innerHTML = '<option value="">İlçe seçiniz</option>';
-              if(districtWrapper) districtWrapper.style.display = 'none';
+              toggleManualInputs(false);
+              updateDistricts(selectedCity);
           }
-      }
+      });
   }
 });

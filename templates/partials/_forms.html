@@ -18,8 +18,24 @@
         {% if form.district.errors %}<div class="text-danger small">{{ form.district.errors|striptags }}</div>{% endif %}
       </div>
     {% endif %}
+    {% if form.city_other %}
+      <div class="mb-3" id="field-city_other" style="display: none;">
+        {{ form.city_other.label_tag }}
+        {{ form.city_other }}
+        {% if form.city_other.help_text %}<div class="form-text">{{ form.city_other.help_text }}</div>{% endif %}
+        {% if form.city_other.errors %}<div class="text-danger small">{{ form.city_other.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endif %}
+    {% if form.district_other %}
+      <div class="mb-3" id="field-district_other" style="display: none;">
+        {{ form.district_other.label_tag }}
+        {{ form.district_other }}
+        {% if form.district_other.help_text %}<div class="form-text">{{ form.district_other.help_text }}</div>{% endif %}
+        {% if form.district_other.errors %}<div class="text-danger small">{{ form.district_other.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endif %}
     {% for field in form %}
-      {% if field.name != 'city' and field.name != 'district' %}
+      {% if field.name != 'city' and field.name != 'district' and field.name != 'city_other' and field.name != 'district_other' %}
         <div class="mb-3" id="field-{{ field.name }}">
           {{ field.label_tag }}
           {% if field.name == 'brand' %}

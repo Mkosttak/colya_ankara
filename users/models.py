@@ -2,8 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 
-# Türkiye'deki 81 ilin listesi
+# Türkiye'deki 81 ilin listesi ("Diğer" seçeneği eklendi)
 TURKISH_CITIES = [
+    ('Diğer', 'Diğer'),  # YENİ EKLENDİ
     ('Adana', 'Adana'), ('Adıyaman', 'Adıyaman'), ('Afyonkarahisar', 'Afyonkarahisar'), ('Ağrı', 'Ağrı'),
     ('Amasya', 'Amasya'), ('Ankara', 'Ankara'), ('Antalya', 'Antalya'), ('Artvin', 'Artvin'),
     ('Aydın', 'Aydın'), ('Balıkesir', 'Balıkesir'), ('Bilecik', 'Bilecik'), ('Bingöl', 'Bingöl'),

@@ -193,7 +193,6 @@ def admin_hotel_create(request):
             hotel = form.save(commit=False)
             hotel.added_by = request.user
             hotel.save()
-            form.save_m2m()
             return redirect('admin_hotel_list')
     else:
         form = GlutenFreeHotelForm()
@@ -209,7 +208,6 @@ def admin_hotel_update(request, pk):
             if not hotel.added_by:
                 hotel.added_by = request.user
             hotel.save()
-            form.save_m2m()
             return redirect('admin_hotel_list')
     else:
         form = GlutenFreeHotelForm(instance=hotel)

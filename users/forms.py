@@ -73,20 +73,26 @@ class GlutenFreeFoodForm(forms.ModelForm):
         }
 
 class GlutenFreeVenueForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].required = True
-        self.fields['city'].required = True
-        # İlçe artık zorunlu değil, şehir seçildikten sonra dolacak
-        self.fields['district'].required = False
-        self.fields['name'].error_messages = {'required': 'Mekan adı zorunludur.'}
-        self.fields['city'].error_messages = {'required': 'Şehir alanı zorunludur.'}
+    # Manuel giriş için kullandığımız metin alanları
+    city_other = forms.CharField(
+        label="Şehir (Manuel Giriş)",
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Listede olmayan şehri buraya yazınız'})
+    )
+    district_other = forms.CharField(
+        label="İlçe (Manuel Giriş)",
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'İlçeyi buraya yazınız'})
+    )
 
     class Meta:
         model = GlutenFreeVenue
-        # Formda gösterilecek alanlar
-        fields = ['name', 'city', 'district', 'gluten_free_products', 'contact', 'address', 'website', 'description', 'is_approved']
-        # Alanların etiketleri
+        # Formda gösterilecek alanların sırasını düzenliyoruz
+        fields = [
+            'name', 'city', 'city_other', 'district', 'district_other', 
+            'gluten_free_products', 'contact', 'address', 'website', 
+            'description', 'is_approved'
+        ]
         labels = {
             'name': 'Mekan Adı',
             'city': 'Şehir',
@@ -98,12 +104,10 @@ class GlutenFreeVenueForm(forms.ModelForm):
             'website': 'Web Sitesi',
             'gluten_free_products': 'Glutensiz Ürünler',
         }
-        # Alanların HTML widget'ları ve özellikleri
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            # ID'ler JavaScript kodunda kullanılacak
-            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}, choices=[('', 'İl seçiniz')] + list(TURKISH_CITIES)),
-            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}, choices=[('', 'İlçe seçiniz')]),
+            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}),
+            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'contact': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
@@ -112,28 +116,66 @@ class GlutenFreeVenueForm(forms.ModelForm):
             'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-class GlutenFreeHotelForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].required = True
-        self.fields['city'].required = True
-        self.fields['district'].required = True
-        self.fields['name'].error_messages = {'required': 'Otel adı zorunludur.'}
-        self.fields['city'].error_messages = {'required': 'Şehir alanı zorunludur.'}
-        self.fields['district'].error_messages = {'required': 'İlçe alanı zorunludur.'}
-        # city için empty_label ve initial kaldırıldı (CharField olduğu için)
-
     def clean(self):
+        """
+        Bu metod artık sadece "Diğer" seçildiğinde manuel alanın boş olup olmadığını kontrol ediyor.
+        Veri değiştirme işlemi yapmıyor.
+        """
         cleaned_data = super().clean()
-        city = cleaned_data.get('city')
-        custom_city = self.data.get('custom_city_name') if self.data else None
-        if city == 'Diğer' and custom_city:
-            cleaned_data['city'] = custom_city
+        city_choice = cleaned_data.get('city')
+        city_other_value = cleaned_data.get('city_other', '').strip()
+
+        if city_choice == 'Diğer' and not city_other_value:
+            # Eğer "Diğer" seçilmiş ama manuel şehir alanı boş bırakılmışsa hata ver.
+            self.add_error('city_other', '"Diğer" seçeneğini kullandığınızda şehir adını manuel olarak girmek zorunludur.')
+        
         return cleaned_data
+
+    def save(self, commit=True):
+        """
+        Bu metod, form verisini veritabanına kaydeder.
+        Hatanın çözüldüğü yer burasıdır.
+        """
+        # 1. Normal kaydetme işlemini başlat ama veritabanına gönderme (commit=False)
+        # Bu bize doldurulmuş bir model nesnesi (instance) verir.
+        instance = super().save(commit=False)
+
+        # 2. Eğer kullanıcının dropdown'dan seçtiği değer "Diğer" ise:
+        if self.cleaned_data.get('city') == 'Diğer':
+            # Model nesnesinin 'city' alanını, manuel girilen 'city_other' değeriyle değiştir.
+            instance.city = self.cleaned_data.get('city_other', '').strip()
+            # Model nesnesinin 'district' alanını, manuel girilen 'district_other' değeriyle değiştir.
+            instance.district = self.cleaned_data.get('district_other', '').strip()
+        
+        # 3. Eğer `commit` parametresi True ise (ki genelde öyledir),
+        # tüm değişiklikler yapıldıktan sonra nesneyi veritabanına kaydet.
+        if commit:
+            instance.save()
+            # Many-to-many alanlarınız olsaydı, bu satıra da ihtiyaç olurdu:
+            # self.save_m2m()
+
+        return instance
+
+class GlutenFreeHotelForm(forms.ModelForm):
+    # Manuel giriş için aynı metin alanlarını ekliyoruz
+    city_other = forms.CharField(
+        label="Şehir (Manuel Giriş)",
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Listede olmayan şehri buraya yazınız'})
+    )
+    district_other = forms.CharField(
+        label="İlçe (Manuel Giriş)",
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'İlçeyi buraya yazınız'})
+    )
 
     class Meta:
         model = GlutenFreeHotel
-        fields = ['name', 'city', 'district', 'contact', 'address', 'website', 'description', 'is_approved']
+        # Alan listesini otel modeline göre düzenliyoruz
+        fields = [
+            'name', 'city', 'city_other', 'district', 'district_other', 
+            'contact', 'address', 'website', 'description', 'is_approved'
+        ]
         labels = {
             'name': 'Otel Adı',
             'city': 'Şehir',
@@ -145,14 +187,41 @@ class GlutenFreeHotelForm(forms.ModelForm):
             'website': 'Web Sitesi',
         }
         widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            # ID'ler aynı kalmalı ki JavaScript kodumuz bu formu da etkilesin
             'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}),
             'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}),
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'contact': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    # Doğrulama metodu (Mekan formuyla birebir aynı)
+    def clean(self):
+        cleaned_data = super().clean()
+        city_choice = cleaned_data.get('city')
+        city_other_value = cleaned_data.get('city_other', '').strip()
+
+        if city_choice == 'Diğer' and not city_other_value:
+            self.add_error('city_other', '"Diğer" seçeneğini kullandığınızda şehir adını manuel olarak girmek zorunludur.')
+        
+        return cleaned_data
+
+    # Kaydetme metodu (Mekan formuyla birebir aynı)
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if self.cleaned_data.get('city') == 'Diğer':
+            instance.city = self.cleaned_data.get('city_other', '').strip()
+            instance.district = self.cleaned_data.get('district_other', '').strip()
+        
+        if commit:
+            instance.save()
+            # self.save_m2m() # Eğer many-to-many alanınız olsaydı bu gerekli olurdu
+
+        return instance
 
 class GlutenFreeMedicineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
