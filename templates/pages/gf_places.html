@@ -72,9 +72,25 @@
         </div>
         
         <div class="venue-card-footer">
-          <button class="btn btn-outline-primary btn-sm" onclick="window.showVenueDetails('{{ venue.name|escapejs }}', '{{ venue.city|escapejs }}', '{{ venue.district|default:""|escapejs }}', '{{ venue.gluten_free_products|default:""|escapejs }}')">
-            <i class="bi bi-eye me-1"></i>Detaylar
-          </button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm btn-show-venue-details"
+              data-name="{{ venue.name|escapejs }}"
+              data-address="{{ venue.address|default:''|escapejs }}"
+              data-city="{{ venue.city|escapejs }}"
+              data-district="{{ venue.district|default:''|escapejs }}"
+              data-products="{{ venue.gluten_free_products|default:''|escapejs }}"
+              type="button"
+              data-bs-toggle="modal" data-bs-target="#venueDetailModal">
+              <i class="bi bi-eye me-1"></i>Detaylar
+            </button>
+            {% if venue.address %}
+            {% with full_address=venue.city|default:''|add:' '|add:venue.district|default:''|add:' '|add:venue.address|default:'' %}
+            <a href="https://www.google.com/maps/search/?api=1&query={{ full_address|urlencode }}" class="btn btn-info btn-sm" target="_blank">
+              <i class="bi bi-geo-alt"></i> Nasıl Giderim?
+            </a>
+            {% endwith %}
+            {% endif %}
+          </div>
         </div>
       </div>
       {% endfor %}
@@ -119,13 +135,11 @@
             <h6><i class="bi bi-shop me-2"></i>Mekan Bilgileri</h6>
             <div id="venueName" class="detail-item"></div>
           </div>
-          
-          <div class="detail-section">
-            <h6><i class="bi bi-geo-alt me-2"></i>Konum</h6>
-            <div id="venueLocation" class="detail-item"></div>
+          <div class="detail-section" id="venueAddressWrapper">
+            <h6><i class="bi bi-geo-alt me-2"></i>Adres</h6>
+            <div id="venueAddress" class="detail-item"></div>
           </div>
-          
-          <div class="detail-section">
+          <div class="detail-section" id="venueProductsWrapper">
             <h6><i class="bi bi-basket me-2"></i>Glutensiz Ürünler</h6>
             <div id="venueProducts" class="detail-item"></div>
           </div>
@@ -138,4 +152,55 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nameDiv = document.getElementById('venueName');
+  const addressDiv = document.getElementById('venueAddress');
+  const productsDiv = document.getElementById('venueProducts');
+  const addressWrapper = document.getElementById('venueAddressWrapper');
+  const productsWrapper = document.getElementById('venueProductsWrapper');
+  const mapsBtnId = 'venueMapsBtn';
+
+  document.querySelectorAll('.btn-show-venue-details').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const name = btn.getAttribute('data-name') || '';
+      const address = btn.getAttribute('data-address') || '';
+      const products = btn.getAttribute('data-products') || '';
+      nameDiv.textContent = name;
+      // Adres
+      if (address) {
+        addressDiv.textContent = address;
+        addressWrapper.style.display = '';
+      } else {
+        addressDiv.textContent = '';
+        addressWrapper.style.display = 'none';
+      }
+      // Ürünler
+      if (products) {
+        productsDiv.textContent = products;
+        productsWrapper.style.display = '';
+      } else {
+        productsDiv.textContent = '';
+        productsWrapper.style.display = 'none';
+      }
+      // Google Maps butonunu ekle
+      let mapsBtn = document.getElementById(mapsBtnId);
+      if (mapsBtn) mapsBtn.remove();
+      if (address) {
+        const fullAddress = encodeURIComponent(address.trim());
+        const a = document.createElement('a');
+        a.href = `https://www.google.com/maps/search/?api=1&query=${fullAddress}`;
+        a.className = 'btn btn-info btn-sm';
+        a.target = '_blank';
+        a.id = mapsBtnId;
+        a.innerHTML = '<i class="bi bi-geo-alt"></i> Nasıl Giderim?';
+        addressDiv.parentNode.appendChild(a);
+      }
+    });
+  });
+});
+</script>
 {% endblock %} 

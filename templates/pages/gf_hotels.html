@@ -48,61 +48,45 @@
 
   <!-- Sonuçlar -->
   {% if hotels %}
-    <div class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Otel Adı</th>
-            <th>Konum</th>
-            <th>İletişim</th>
-            <th>İşlemler</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for hotel in hotels %}
-          <tr>
-            <td>
-              <div class="hotel-info">
-                <div class="hotel-name">{{ hotel.name }}</div>
-                {% if hotel.website %}
-                  <div class="hotel-website">
-                    <a href="{{ hotel.website }}" target="_blank" class="text-muted small">
-                      <i class="bi bi-link-45deg me-1"></i>Website
-                    </a>
-                  </div>
-                {% endif %}
-              </div>
-            </td>
-            <td>
-              <div class="location-info">
-                <div class="location-city">{{ hotel.city }}</div>
-                {% if hotel.district %}
-                  <div class="location-district text-muted small">{{ hotel.district }}</div>
-                {% endif %}
-              </div>
-            </td>
-            <td>
-              {% if hotel.contact_info %}
-                <div class="contact-info">{{ hotel.contact_info }}</div>
-              {% else %}
-                <span class="text-muted">-</span>
-              {% endif %}
-            </td>
-            <td>
-              <div class="action-buttons">
-                                 <button class="btn btn-sm btn-outline-primary" onclick="window.showHotelDetails('{{ hotel.name|escapejs }}', '{{ hotel.city|escapejs }}', '{{ hotel.district|default:""|escapejs }}', '{{ hotel.contact_info|default:""|escapejs }}', '{{ hotel.website|default:""|escapejs }}')">
-                  <i class="bi bi-eye me-1"></i>Detay
-                </button>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="venue-grid">
+      {% for hotel in hotels %}
+      <div class="venue-card">
+        <div class="venue-card-body">
+          <h5 class="venue-name">{{ hotel.name }}</h5>
+          <div class="venue-details">
+            <div class="detail-item">
+              <i class="bi bi-geo-alt me-2"></i>
+              <span class="detail-label">Konum:</span>
+              <span class="detail-value">{{ hotel.city }}{% if hotel.district %} / {{ hotel.district }}{% endif %}</span>
+            </div>
+            {% if hotel.contact_info %}
+            <div class="detail-item">
+              <i class="bi bi-telephone me-2"></i>
+              <span class="detail-label">İletişim:</span>
+              <span class="detail-value">{{ hotel.contact_info }}</span>
+            </div>
+            {% endif %}
+            {# Web sitesi bilgisi kartta gösterilmeyecek #}
+          </div>
+        </div>
+        <div class="venue-card-footer">
+          <button class="btn btn-outline-primary btn-sm btn-show-hotel-details"
+            data-name="{{ hotel.name|escapejs }}"
+            data-city="{{ hotel.city|escapejs }}"
+            data-district="{{ hotel.district|default:''|escapejs }}"
+            data-contact="{{ hotel.contact_info|default:''|escapejs }}"
+            data-website="{{ hotel.website|default:''|escapejs }}"
+            data-address="{{ hotel.address|default:''|escapejs }}"
+            type="button"
+            data-bs-toggle="modal" data-bs-target="#hotelDetailModal">
+            <i class="bi bi-eye me-1"></i>Detaylar
+          </button>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    
     <!-- Sonuç Sayısı -->
-    <div class="results-info mt-3">
+    <div class="results-info mt-4">
       <p class="text-muted">
         <i class="bi bi-info-circle me-1"></i>
         Toplam {{ hotels|length }} otel bulundu.
@@ -140,18 +124,15 @@
             <h6><i class="bi bi-building me-2"></i>Otel Bilgileri</h6>
             <div id="hotelName" class="detail-item"></div>
           </div>
-          
-          <div class="detail-section">
-            <h6><i class="bi bi-geo-alt me-2"></i>Konum</h6>
-            <div id="hotelLocation" class="detail-item"></div>
+          <div class="detail-section" id="hotelAddressWrapper">
+            <h6><i class="bi bi-geo-alt me-2"></i>Adres</h6>
+            <div id="hotelAddress" class="detail-item"></div>
           </div>
-          
-          <div class="detail-section">
+          <div class="detail-section" id="hotelContactWrapper">
             <h6><i class="bi bi-telephone me-2"></i>İletişim</h6>
             <div id="hotelContact" class="detail-item"></div>
           </div>
-          
-          <div class="detail-section">
+          <div class="detail-section" id="hotelWebsiteWrapper">
             <h6><i class="bi bi-link-45deg me-2"></i>Website</h6>
             <div id="hotelWebsite" class="detail-item"></div>
           </div>
@@ -164,4 +145,66 @@
   </div>
 </div>
 
+{% endblock %} 
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nameDiv = document.getElementById('hotelName');
+  const addressDiv = document.getElementById('hotelAddress');
+  const contactDiv = document.getElementById('hotelContact');
+  const websiteDiv = document.getElementById('hotelWebsite');
+  const addressWrapper = document.getElementById('hotelAddressWrapper');
+  const contactWrapper = document.getElementById('hotelContactWrapper');
+  const websiteWrapper = document.getElementById('hotelWebsiteWrapper');
+  const mapsBtnId = 'hotelMapsBtn';
+
+  document.querySelectorAll('.btn-show-hotel-details').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const name = btn.getAttribute('data-name') || '';
+      const address = btn.getAttribute('data-address') || '';
+      const contact = btn.getAttribute('data-contact') || '';
+      const website = btn.getAttribute('data-website') || '';
+      nameDiv.textContent = name;
+      // Adres
+      if (address) {
+        addressDiv.textContent = address;
+        addressWrapper.style.display = '';
+      } else {
+        addressDiv.textContent = '';
+        addressWrapper.style.display = 'none';
+      }
+      // İletişim
+      if (contact) {
+        contactDiv.textContent = contact;
+        contactWrapper.style.display = '';
+      } else {
+        contactDiv.textContent = '';
+        contactWrapper.style.display = 'none';
+      }
+      // Website
+      if (website) {
+        websiteDiv.innerHTML = `<a href="${website}" target="_blank">${website}</a>`;
+        websiteWrapper.style.display = '';
+      } else {
+        websiteDiv.textContent = '';
+        websiteWrapper.style.display = 'none';
+      }
+      // Google Maps butonunu ekle
+      let mapsBtn = document.getElementById(mapsBtnId);
+      if (mapsBtn) mapsBtn.remove();
+      if (address) {
+        const fullAddress = encodeURIComponent(address.trim());
+        const a = document.createElement('a');
+        a.href = `https://www.google.com/maps/search/?api=1&query=${fullAddress}`;
+        a.className = 'btn btn-info btn-sm mt-2';
+        a.target = '_blank';
+        a.id = mapsBtnId;
+        a.innerHTML = '<i class="bi bi-geo-alt"></i> Nasıl Giderim?';
+        addressDiv.parentNode.appendChild(a);
+      }
+    });
+  });
+});
+</script>
 {% endblock %} 
