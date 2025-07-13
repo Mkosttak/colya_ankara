@@ -235,11 +235,15 @@ document.addEventListener('DOMContentLoaded', function() {
           if (cityOtherWrapper) cityOtherWrapper.style.display = 'block'; // Manuel şehir input'unu göster
           if (districtOtherWrapper) districtOtherWrapper.style.display = 'block'; // Manuel ilçe input'unu göster
           if (cityOtherInput) cityOtherInput.required = true; // Manuel şehir alanını zorunlu yap
+          if (districtOtherInput) districtOtherInput.required = true; // Manuel ilçe alanını zorunlu yap
+          if (districtSelect) districtSelect.required = false; // Dropdown ilçe alanını zorunlu yapma
       } else {
           // "Diğer" dışında bir şehir seçildiğinde:
           if (cityOtherWrapper) cityOtherWrapper.style.display = 'none'; // Manuel şehir input'unu gizle
           if (districtOtherWrapper) districtOtherWrapper.style.display = 'none'; // Manuel ilçe input'unu gizle
           if (cityOtherInput) cityOtherInput.required = false; // Manuel şehir alanını zorunlu yapma
+          if (districtOtherInput) districtOtherInput.required = false; // Manuel ilçe alanını zorunlu yapma
+          if (districtSelect) districtSelect.required = true; // Dropdown ilçe alanını zorunlu yap
           if (cityOtherInput) cityOtherInput.value = ''; // Alanları temizle
           if (districtOtherInput) districtOtherInput.value = ''; // Alanları temizle
       }
@@ -275,6 +279,11 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
           toggleManualInputs(false);
           updateDistricts(initialCity);
+      }
+      
+      // Sayfa yüklendiğinde ilçe alanının zorunlu olup olmadığını ayarla
+      if (initialCity && initialCity !== 'Diğer') {
+          if (districtSelect) districtSelect.required = true;
       }
 
       // Şehir seçimi değiştiğinde olay dinleyici

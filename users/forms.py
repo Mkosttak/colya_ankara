@@ -85,6 +85,18 @@ class GlutenFreeVenueForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'İlçeyi buraya yazınız'})
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Eğer bir instance varsa (düzenleme durumu) ve şehir "Diğer" listede yoksa
+        if self.instance and self.instance.pk:
+            # Şehir değeri TURKISH_CITIES listesinde yoksa, "Diğer" seç ve manuel alanları doldur
+            if self.instance.city and self.instance.city not in [city[0] for city in TURKISH_CITIES]:
+                self.fields['city'].initial = 'Diğer'
+                self.fields['city_other'].initial = self.instance.city
+                self.fields['district_other'].initial = self.instance.district
+        # İlçe alanını zorunlu yap
+        self.fields['district'].required = True
+
     class Meta:
         model = GlutenFreeVenue
         # Formda gösterilecek alanların sırasını düzenliyoruz
@@ -124,10 +136,23 @@ class GlutenFreeVenueForm(forms.ModelForm):
         cleaned_data = super().clean()
         city_choice = cleaned_data.get('city')
         city_other_value = cleaned_data.get('city_other', '').strip()
+        district_choice = cleaned_data.get('district')
+        district_other_value = cleaned_data.get('district_other', '').strip()
 
+        # Şehir kontrolü
         if city_choice == 'Diğer' and not city_other_value:
             # Eğer "Diğer" seçilmiş ama manuel şehir alanı boş bırakılmışsa hata ver.
             self.add_error('city_other', '"Diğer" seçeneğini kullandığınızda şehir adını manuel olarak girmek zorunludur.')
+        
+        # İlçe kontrolü
+        if city_choice == 'Diğer':
+            # "Diğer" seçildiğinde manuel ilçe alanı zorunlu
+            if not district_other_value:
+                self.add_error('district_other', 'İlçe bilgisi zorunludur.')
+        else:
+            # Normal şehir seçildiğinde dropdown ilçe alanı zorunlu
+            if not district_choice:
+                self.add_error('district', 'İlçe bilgisi zorunludur.')
         
         return cleaned_data
 
@@ -169,6 +194,18 @@ class GlutenFreeHotelForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'İlçeyi buraya yazınız'})
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Eğer bir instance varsa (düzenleme durumu) ve şehir "Diğer" listede yoksa
+        if self.instance and self.instance.pk:
+            # Şehir değeri TURKISH_CITIES listesinde yoksa, "Diğer" seç ve manuel alanları doldur
+            if self.instance.city and self.instance.city not in [city[0] for city in TURKISH_CITIES]:
+                self.fields['city'].initial = 'Diğer'
+                self.fields['city_other'].initial = self.instance.city
+                self.fields['district_other'].initial = self.instance.district
+        # İlçe alanını zorunlu yap
+        self.fields['district'].required = True
+
     class Meta:
         model = GlutenFreeHotel
         # Alan listesini otel modeline göre düzenliyoruz
@@ -203,9 +240,22 @@ class GlutenFreeHotelForm(forms.ModelForm):
         cleaned_data = super().clean()
         city_choice = cleaned_data.get('city')
         city_other_value = cleaned_data.get('city_other', '').strip()
+        district_choice = cleaned_data.get('district')
+        district_other_value = cleaned_data.get('district_other', '').strip()
 
+        # Şehir kontrolü
         if city_choice == 'Diğer' and not city_other_value:
             self.add_error('city_other', '"Diğer" seçeneğini kullandığınızda şehir adını manuel olarak girmek zorunludur.')
+        
+        # İlçe kontrolü
+        if city_choice == 'Diğer':
+            # "Diğer" seçildiğinde manuel ilçe alanı zorunlu
+            if not district_other_value:
+                self.add_error('district_other', 'İlçe bilgisi zorunludur.')
+        else:
+            # Normal şehir seçildiğinde dropdown ilçe alanı zorunlu
+            if not district_choice:
+                self.add_error('district', 'İlçe bilgisi zorunludur.')
         
         return cleaned_data
 
