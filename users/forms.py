@@ -1,8 +1,9 @@
+from os import name
 from django import forms
 from .models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordChangeForm
-from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe
+from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, Category
 
 class UserLoginForm(AuthenticationForm):
     username = forms.CharField(label='Kullanıcı Adı', max_length=150, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kullanıcı Adı'}))
@@ -34,6 +35,14 @@ class UserPasswordChangeForm(PasswordChangeForm):
     new_password2 = forms.CharField(label='Yeni Şifre (Tekrar)', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Yeni Şifre (Tekrar)'}))
 
 class GlutenFreeFoodForm(forms.ModelForm):
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=True,
+        empty_label="Kategori seçin",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_category'}),
+        label="Kategori"
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['name'].required = True
@@ -42,6 +51,8 @@ class GlutenFreeFoodForm(forms.ModelForm):
         self.fields['name'].error_messages = {'required': 'İsim alanı zorunludur.'}
         self.fields['brand'].error_messages = {'required': 'Marka alanı zorunludur.'}
         self.fields['category'].error_messages = {'required': 'Kategori alanı zorunludur.'}
+        self.fields['category'].initial = None
+        self.fields['category'].choices = [('', 'Kategori seçin')] + list(self.fields['category'].choices)[1:]
 
     class Meta:
         model = GlutenFreeFood
@@ -56,7 +67,7 @@ class GlutenFreeFoodForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'brand': forms.Select(attrs={'class': 'form-select', 'id': 'id_brand'}),
-            'category': forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_category'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'id': 'id_category'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

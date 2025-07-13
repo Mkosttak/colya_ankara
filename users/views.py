@@ -6,13 +6,14 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import update_session_auth_hash
 from .forms import UserPasswordChangeForm
-from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe
+from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, FoodBrand, Category
 from .forms import GlutenFreeFoodForm, GlutenFreeVenueForm, GlutenFreeHotelForm, GlutenFreeMedicineForm, GlutenFreeRecipeForm
 from django.http import JsonResponse, HttpRequest
 from .models import Brand, Category
 from django.db.models import Q, QuerySet
 from .models import User
 from typing import Any
+from .models import MedicineBrand
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -310,11 +311,12 @@ def admin_recipe_update(request, pk):
 
 @superuser_required
 def admin_recipe_delete(request, pk):
-    recipe = get_object_or_404(GlutenFreeRecipe, pk=pk)
+    item = get_object_or_404(GlutenFreeRecipe, pk=pk)
     if request.method == 'POST':
-        recipe.delete()
+        item.delete()
+        messages.success(request, 'Tarif başarıyla silindi.')
         return redirect('admin_recipe_list')
-    return render(request, 'users/admin_recipe_confirm_delete.html', {'recipe': recipe})
+    return render(request, 'users/admin_recipe_confirm_delete.html', {'item': item})
 
 @superuser_required
 def admin_users_list(request):
@@ -335,21 +337,31 @@ def admin_user_delete(request, pk):
     return redirect('admin_users_list')
 
 @superuser_required
-def add_brand_ajax(request):
+def add_brand(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         if name:
-            brand, created = Brand.objects.get_or_create(name=name)
+            brand, created = FoodBrand.objects.get_or_create(name=name)
             return JsonResponse({'success': True, 'id': brand.id, 'name': brand.name})
         return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
     return JsonResponse({'success': False, 'error': 'Sadece POST.'})
 
 @superuser_required
-def add_category_ajax(request):
+def add_category(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         if name:
             category, created = Category.objects.get_or_create(name=name)
             return JsonResponse({'success': True, 'id': category.id, 'name': category.name})
+        return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
+    return JsonResponse({'success': False, 'error': 'Sadece POST.'})
+
+@superuser_required
+def add_medicine_brand(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            brand, created = MedicineBrand.objects.get_or_create(name=name)
+            return JsonResponse({'success': True, 'id': brand.id, 'name': brand.name})
         return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
     return JsonResponse({'success': False, 'error': 'Sadece POST.'})

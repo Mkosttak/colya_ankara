@@ -23,15 +23,18 @@
         <div class="mb-3" id="field-{{ field.name }}">
           {{ field.label_tag }}
           {% if field.name == 'brand' %}
-            <div class="input-group">
-              {{ field }}
+            <div style="display: flex; gap: 4px; align-items: stretch;">
+              <div style="flex: 1; min-width: 0;">{{ field }}</div>
               <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBrandModal" title="Yeni Marka Ekle">+</button>
             </div>
           {% elif field.name == 'category' %}
-            <div class="input-group">
-              {{ field }}
-              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
+            <div id="category-fields">
+              <div class="category-select-row" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 4px;">
+                <div style="flex: 1; min-width: 0;">{{ field }}</div>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
+              </div>
             </div>
+            <small class="text-muted">En fazla 5 kategori seçebilirsiniz.</small>
           {% else %}
             {{ field }}
           {% endif %}
@@ -86,7 +89,6 @@
       </div>
     </div>
   </div>
-
 {% else %}
   <div class="alert alert-warning">Form bulunamadı.</div>
 {% endif %}
