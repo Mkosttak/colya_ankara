@@ -2,9 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 
-# Türkiye'deki 81 ilin listesi ("Diğer" seçeneği eklendi)
+# Türkiye'deki 81 ilin listesi
 TURKISH_CITIES = [
-    ('Diğer', 'Diğer'),  # YENİ EKLENDİ
     ('Adana', 'Adana'), ('Adıyaman', 'Adıyaman'), ('Afyonkarahisar', 'Afyonkarahisar'), ('Ağrı', 'Ağrı'),
     ('Amasya', 'Amasya'), ('Ankara', 'Ankara'), ('Antalya', 'Antalya'), ('Artvin', 'Artvin'),
     ('Aydın', 'Aydın'), ('Balıkesir', 'Balıkesir'), ('Bilecik', 'Bilecik'), ('Bingöl', 'Bingöl'),
@@ -59,6 +58,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_login = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    
+    # Editor permissions
+    can_edit_foods = models.BooleanField(default=False, verbose_name='Glutensiz Gıda Yetki')
+    can_edit_venues = models.BooleanField(default=False, verbose_name='Glutensiz Mekan Yetki')
+    can_edit_hotels = models.BooleanField(default=False, verbose_name='Glutensiz Otel Yetki')
+    can_edit_medicines = models.BooleanField(default=False, verbose_name='Glutensiz İlaç Yetki')
+    can_edit_recipes = models.BooleanField(default=False, verbose_name='Glutensiz Tarif Yetki')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
@@ -69,84 +75,121 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
 class Brand(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Brand Name")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Marka Adı")
+    class Meta:
+        verbose_name = "Marka"
+        verbose_name_plural = "Markalar"
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Category Name")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Kategori Adı")
+    class Meta:
+        verbose_name = "Kategori"
+        verbose_name_plural = "Kategoriler"
     def __str__(self):
         return self.name
 
 class FoodBrand(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="Gıda Markası")
+    class Meta:
+        verbose_name = "Gıda Markası"
+        verbose_name_plural = "Gıda Markaları"
     def __str__(self):
         return self.name
 
 class MedicineBrand(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="İlaç Markası")
+    class Meta:
+        verbose_name = "İlaç Markası"
+        verbose_name_plural = "İlaç Markaları"
     def __str__(self):
         return self.name
 
 class GlutenFreeFood(models.Model):
-    name = models.CharField(max_length=100)
-    brand = models.ForeignKey(FoodBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
-    category = models.ManyToManyField(Category, blank=True, verbose_name="Category")
-    is_approved = models.BooleanField(default=False)
-    description = models.TextField(blank=True, null=True)
-    approved_at = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
+    name = models.CharField(max_length=100, verbose_name="Ürün Adı")
+    brand = models.ForeignKey(FoodBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Marka")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Kategori")
+    is_approved = models.BooleanField(default=False, verbose_name="Onaylı mı?")
+    description = models.TextField(blank=True, null=True, verbose_name="Açıklama")
+    approved_at = models.DateTimeField(auto_now=True, verbose_name="Onay Tarihi")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen')
+    class Meta:
+        verbose_name = "Glutensiz Gıda"
+        verbose_name_plural = "Glutensiz Gıdalar"
     def __str__(self):
         return self.name
 
 class GlutenFreeVenue(models.Model):
-    name = models.CharField(max_length=100)
-    # Şehir alanı, yukarıdaki listeden seçim yapılacak şekilde güncellendi
+    name = models.CharField(max_length=100, verbose_name="Mekan Adı")
     city = models.CharField(max_length=30, choices=TURKISH_CITIES, default='Ankara', verbose_name="Şehir")
-    # İlçe alanı güncellendi
     district = models.CharField(max_length=50, blank=True, null=True, verbose_name="İlçe")
-    is_approved = models.BooleanField(default=False)
-    approved_at = models.DateTimeField(auto_now=True)
-    description = models.TextField(blank=True, null=True)
-    contact = models.CharField(max_length=200, blank=True, null=True)
-    address = models.CharField(max_length=300, blank=True, null=True)
+    is_approved = models.BooleanField(default=False, verbose_name="Onaylı mı?")
+    approved_at = models.DateTimeField(auto_now=True, verbose_name="Onay Tarihi")
+    description = models.TextField(blank=True, null=True, verbose_name="Açıklama")
+    contact = models.CharField(max_length=200, blank=True, null=True, verbose_name="İletişim")
+    address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Adres")
     website = models.URLField(blank=True, null=True, verbose_name="Web Sitesi")
-    gluten_free_products = models.TextField(blank=True, null=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
+    gluten_free_products = models.TextField(blank=True, null=True, verbose_name="Glutensiz Ürünler")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen')
+    class Meta:
+        verbose_name = "Glutensiz Mekan"
+        verbose_name_plural = "Glutensiz Mekanlar"
     def __str__(self):
         return self.name
 
 class GlutenFreeHotel(models.Model):
-    name = models.CharField(max_length=100)
-    # Şehir alanı, yukarıdaki listeden seçim yapılacak şekilde güncellendi
+    name = models.CharField(max_length=100, verbose_name="Otel Adı")
     city = models.CharField(max_length=30, choices=TURKISH_CITIES, default='Ankara', verbose_name="Şehir")
-    # İlçe alanı güncellendi
     district = models.CharField(max_length=50, blank=True, null=True, verbose_name="İlçe")
-    is_approved = models.BooleanField(default=False)
-    approved_at = models.DateTimeField(auto_now=True)
-    description = models.TextField(blank=True, null=True)
-    contact = models.CharField(max_length=200, blank=True, null=True)
-    address = models.CharField(max_length=300, blank=True, null=True)
-    website = models.URLField(blank=True, null=True, verbose_name="Website")
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
+    is_approved = models.BooleanField(default=False, verbose_name="Onaylı mı?")
+    approved_at = models.DateTimeField(auto_now=True, verbose_name="Onay Tarihi")
+    description = models.TextField(blank=True, null=True, verbose_name="Açıklama")
+    contact = models.CharField(max_length=200, blank=True, null=True, verbose_name="İletişim")
+    address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Adres")
+    website = models.URLField(blank=True, null=True, verbose_name="Web Sitesi")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen')
+    class Meta:
+        verbose_name = "Glutensiz Otel"
+        verbose_name_plural = "Glutensiz Oteller"
     def __str__(self):
         return self.name
 
 class GlutenFreeMedicine(models.Model):
-    name = models.CharField(max_length=100)
-    brand = models.ForeignKey(MedicineBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Brand")
-    is_approved = models.BooleanField(default=False)
-    approved_at = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
+    name = models.CharField(max_length=100, verbose_name="İlaç Adı")
+    brand = models.ForeignKey(MedicineBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Marka")
+    is_approved = models.BooleanField(default=False, verbose_name="Onaylı mı?")
+    approved_at = models.DateTimeField(auto_now=True, verbose_name="Onay Tarihi")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen')
+    description = models.TextField(blank=True, null=True, verbose_name="Açıklama")
+
+    class Meta:
+        verbose_name = "Glutensiz İlaç"
+        verbose_name_plural = "Glutensiz İlaçlar"
+
+    def __str__(self):
+        return self.name
+
+class RecipeCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Kategori Adı")
+    class Meta:
+        verbose_name = "Tarif Kategorisi"
+        verbose_name_plural = "Tarif Kategorileri"
     def __str__(self):
         return self.name
 
 class GlutenFreeRecipe(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    is_approved = models.BooleanField(default=False)
-    approved_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Added By')
+    name = models.CharField(max_length=100, verbose_name="Tarif Adı")
+    category = models.ForeignKey(RecipeCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Kategori")
+    description = models.TextField(blank=True, null=True, verbose_name="Açıklama")
+    ingredients = models.TextField(blank=True, null=True, verbose_name="Malzemeler")
+    instructions = models.TextField(blank=True, null=True, verbose_name="Hazırlanış")
+    is_approved = models.BooleanField(default=False, verbose_name="Onaylı mı?")
+    approved_at = models.DateTimeField(auto_now=True, verbose_name="Onay Tarihi")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
+    added_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='added_%(class)s_items', verbose_name='Ekleyen')
+    class Meta:
+        verbose_name = "Glutensiz Tarif"
+        verbose_name_plural = "Glutensiz Tarifler"
     def __str__(self):
         return self.name

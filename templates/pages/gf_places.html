@@ -79,17 +79,11 @@
               data-city="{{ venue.city|escapejs }}"
               data-district="{{ venue.district|default:''|escapejs }}"
               data-products="{{ venue.gluten_free_products|default:''|escapejs }}"
+              data-description="{{ venue.description|default:''|escapejs }}"
               type="button"
               data-bs-toggle="modal" data-bs-target="#venueDetailModal">
               <i class="bi bi-eye me-1"></i>Detaylar
             </button>
-            {% if venue.address %}
-            {% with full_address=venue.city|default:''|add:' '|add:venue.district|default:''|add:' '|add:venue.address|default:'' %}
-            <a href="https://www.google.com/maps/search/?api=1&query={{ full_address|urlencode }}" class="btn btn-info btn-sm" target="_blank">
-              <i class="bi bi-geo-alt"></i> Nasıl Giderim?
-            </a>
-            {% endwith %}
-            {% endif %}
           </div>
         </div>
       </div>
@@ -135,10 +129,18 @@
             <h6><i class="bi bi-shop me-2"></i>Mekan Bilgileri</h6>
             <div id="venueName" class="detail-item"></div>
           </div>
+          
+          <!-- Açıklama Alanı -->
+          <div class="detail-section" id="venueDescriptionWrapper">
+            <h6><i class="bi bi-file-text me-2"></i>Açıklama</h6>
+            <div id="venueDescription" class="detail-item"></div>
+          </div>
+          
           <div class="detail-section" id="venueAddressWrapper">
             <h6><i class="bi bi-geo-alt me-2"></i>Adres</h6>
             <div id="venueAddress" class="detail-item"></div>
           </div>
+          
           <div class="detail-section" id="venueProductsWrapper">
             <h6><i class="bi bi-basket me-2"></i>Glutensiz Ürünler</h6>
             <div id="venueProducts" class="detail-item"></div>
@@ -146,6 +148,7 @@
         </div>
       </div>
       <div class="modal-footer">
+        <button id="venueMapsBtn" type="button" class="btn btn-info"><i class="bi bi-geo-alt"></i> Nasıl Giderim?</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
     </div>
@@ -155,21 +158,40 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ cities|json_script:"cities-data" }}
+{{ districts|json_script:"districts-data" }}
+<script src="{% static 'js/style.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const nameDiv = document.getElementById('venueName');
   const addressDiv = document.getElementById('venueAddress');
   const productsDiv = document.getElementById('venueProducts');
+  const descriptionDiv = document.getElementById('venueDescription');
   const addressWrapper = document.getElementById('venueAddressWrapper');
   const productsWrapper = document.getElementById('venueProductsWrapper');
-  const mapsBtnId = 'venueMapsBtn';
+  const descriptionWrapper = document.getElementById('venueDescriptionWrapper');
+  const mapsBtn = document.getElementById('venueMapsBtn');
 
   document.querySelectorAll('.btn-show-venue-details').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const name = btn.getAttribute('data-name') || '';
       const address = btn.getAttribute('data-address') || '';
       const products = btn.getAttribute('data-products') || '';
+      const description = btn.getAttribute('data-description') || '';
+      const city = btn.getAttribute('data-city') || '';
+      const district = btn.getAttribute('data-district') || '';
+      
       nameDiv.textContent = name;
+      
+      // Açıklama
+      if (description) {
+        descriptionDiv.textContent = description;
+        descriptionWrapper.style.display = '';
+      } else {
+        descriptionDiv.textContent = '';
+        descriptionWrapper.style.display = 'none';
+      }
+      
       // Adres
       if (address) {
         addressDiv.textContent = address;
@@ -178,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addressDiv.textContent = '';
         addressWrapper.style.display = 'none';
       }
+      
       // Ürünler
       if (products) {
         productsDiv.textContent = products;
@@ -186,21 +209,30 @@ document.addEventListener('DOMContentLoaded', function() {
         productsDiv.textContent = '';
         productsWrapper.style.display = 'none';
       }
-      // Google Maps butonunu ekle
-      let mapsBtn = document.getElementById(mapsBtnId);
-      if (mapsBtn) mapsBtn.remove();
+      
+      // Google Maps butonunu güncelle
       if (address) {
-        const fullAddress = encodeURIComponent(address.trim());
-        const a = document.createElement('a');
-        a.href = `https://www.google.com/maps/search/?api=1&query=${fullAddress}`;
-        a.className = 'btn btn-info btn-sm';
-        a.target = '_blank';
-        a.id = mapsBtnId;
-        a.innerHTML = '<i class="bi bi-geo-alt"></i> Nasıl Giderim?';
-        addressDiv.parentNode.appendChild(a);
+        const fullAddress = encodeURIComponent(`${city} ${district} ${address}`.trim());
+        mapsBtn.style.display = '';
+        mapsBtn.onclick = function() {
+          window.open(`https://www.google.com/maps/search/?api=1&query=${fullAddress}`, '_blank');
+        };
+      } else {
+        mapsBtn.style.display = 'none';
       }
     });
   });
+
+  const cities = JSON.parse(document.getElementById('cities-data').textContent);
+  const districts = JSON.parse(document.getElementById('districts-data').textContent);
+  setupCityDistrictFilters(
+      'venue-filter-city',
+      'venue-filter-district',
+      cities,
+      districts,
+      '{{ request.GET.city|default:"" }}',
+      '{{ request.GET.district|default:"" }}'
+  );
 });
 </script>
 {% endblock %} 

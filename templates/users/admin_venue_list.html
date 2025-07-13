@@ -72,6 +72,7 @@
       <table class="table">
         <thead>
           <tr>
+            <th>Tarih</th>
             <th>Ekleyen</th>
             <th>Mekan Adı</th>
             <th>Konum</th>
@@ -83,6 +84,12 @@
         <tbody>
           {% for venue in venues %}
           <tr>
+            <td>
+              <div class="date-info">
+                <div class="date-value">{{ venue.approved_at|date:"d.m.Y" }}</div>
+                <div class="time-value text-muted small">{{ venue.approved_at|date:"H:i" }}</div>
+              </div>
+            </td>
             <td>
               <div class="user-info">
                 {% if venue.added_by %}
@@ -171,6 +178,21 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ cities|json_script:"cities-data" }}
+{{ districts|json_script:"districts-data" }}
 <script src="{% static 'js/style.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cities = JSON.parse(document.getElementById('cities-data').textContent);
+        const districts = JSON.parse(document.getElementById('districts-data').textContent);
+        setupCityDistrictFilters(
+            'venue-filter-city',
+            'venue-filter-district',
+            cities,
+            districts,
+            '{{ request.GET.city|default:"" }}',
+            '{{ request.GET.district|default:"" }}'
+        );
+    });
 </script>
 {% endblock %} 

@@ -11,27 +11,12 @@
       </div>
     {% endif %}
     {% if form.district %}
-      <div class="mb-3" id="field-district" style="display: none;">
+      <div class="mb-3" id="field-district">
         {{ form.district.label_tag }}
         {{ form.district }}
         {% if form.district.help_text %}<div class="form-text">{{ form.district.help_text }}</div>{% endif %}
         {% if form.district.errors %}<div class="text-danger small">{{ form.district.errors|striptags }}</div>{% endif %}
-      </div>
-    {% endif %}
-    {% if form.city_other %}
-      <div class="mb-3" id="field-city_other" style="display: none;">
-        {{ form.city_other.label_tag }}
-        {{ form.city_other }}
-        {% if form.city_other.help_text %}<div class="form-text">{{ form.city_other.help_text }}</div>{% endif %}
-        {% if form.city_other.errors %}<div class="text-danger small">{{ form.city_other.errors|striptags }}</div>{% endif %}
-      </div>
-    {% endif %}
-    {% if form.district_other %}
-      <div class="mb-3" id="field-district_other" style="display: none;">
-        {{ form.district_other.label_tag }}
-        {{ form.district_other }}
-        {% if form.district_other.help_text %}<div class="form-text">{{ form.district_other.help_text }}</div>{% endif %}
-        {% if form.district_other.errors %}<div class="text-danger small">{{ form.district_other.errors|striptags }}</div>{% endif %}
+        <!-- Debug: District field rendered with {{ form.district.field.choices|length }} choices -->
       </div>
     {% endif %}
     {% for field in form %}
@@ -44,13 +29,10 @@
               <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBrandModal" title="Yeni Marka Ekle">+</button>
             </div>
           {% elif field.name == 'category' %}
-            <div id="category-fields">
-              <div class="category-select-row" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 4px;">
-                <div style="flex: 1; min-width: 0;">{{ field }}</div>
-                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
-              </div>
+            <div style="display: flex; gap: 4px; align-items: stretch;">
+              <div style="flex: 1; min-width: 0;">{{ field }}</div>
+              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Yeni Kategori Ekle">+</button>
             </div>
-            <small class="text-muted">En fazla 5 kategori seçebilirsiniz.</small>
           {% else %}
             {{ field }}
           {% endif %}

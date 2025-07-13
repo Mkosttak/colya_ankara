@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, authenticate
-from .forms import UserCreateForm, UserLoginForm
+from .forms import UserCreateForm, UserLoginForm, UserUpdateForm
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import update_session_auth_hash
 from .forms import UserPasswordChangeForm
-from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, FoodBrand, Category
+from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, FoodBrand, Category, RecipeCategory
 from .forms import GlutenFreeFoodForm, GlutenFreeVenueForm, GlutenFreeHotelForm, GlutenFreeMedicineForm, GlutenFreeRecipeForm
 from django.http import JsonResponse, HttpRequest
 from .models import Brand, Category
@@ -15,7 +15,8 @@ from .models import User
 from typing import Any
 from .models import MedicineBrand
 # Yeni oluşturduğumuz turkey_data.py dosyasından fonksiyonu import ediyoruz
-from .turkey_data import get_districts
+from .turkey_data import get_districts, DISTRICTS
+from .models import TURKISH_CITIES
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -55,54 +56,76 @@ def superuser_required(view_func):
     decorated_view_func = login_required(user_passes_test(lambda u: u.is_superuser)(view_func))
     return decorated_view_func
 
+# Editör yetki kontrolü
+def editor_permission_required(permission_field):
+    def decorator(view_func):
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+            if request.user.role == 'editor' and getattr(request.user, permission_field, False):
+                return view_func(request, *args, **kwargs)
+            messages.error(request, 'Bu sayfaya erişim yetkiniz bulunmamaktadır.')
+            return redirect('home')
+        return wrapper
+    return decorator
+
 # GlutenFreeFood CRUD
-@superuser_required
+@editor_permission_required('can_edit_foods')
 def admin_food_list(request):
-    foods = GlutenFreeFood.objects.all()  # type: ignore
+    foods = GlutenFreeFood.objects.select_related('brand', 'category').all()
     q = request.GET.get('q')
     brand_id = request.GET.get('brand')
     category_id = request.GET.get('category')
     is_approved = request.GET.get('is_approved')
+
     if q:
         foods = foods.filter(
             Q(name__icontains=q) |
             Q(brand__name__icontains=q) |
             Q(category__name__icontains=q)
-        )
+        ).distinct()
     if brand_id:
         foods = foods.filter(brand_id=brand_id)
     if category_id:
         foods = foods.filter(category_id=category_id)
     if is_approved in ['true', 'false']:
         foods = foods.filter(is_approved=(is_approved == 'true'))
-    brands = Brand.objects.all()  # type: ignore
-    categories = Category.objects.all()  # type: ignore
+
+    brands = FoodBrand.objects.exclude(name__iexact='Diğer').all()
+    categories = Category.objects.exclude(name__iexact='Diğer').all()
     return render(request, 'users/admin_food_list.html', {'foods': foods, 'brands': brands, 'categories': categories, 'request': request})
 
-@superuser_required
+@editor_permission_required('can_edit_foods')
 def admin_food_create(request):
     if request.method == 'POST':
         form = GlutenFreeFoodForm(request.POST)
         if form.is_valid():
-            form.save()
+            food = form.save(commit=False)
+            food.added_by = request.user
+            food.save()
             return redirect('admin_food_list')
     else:
         form = GlutenFreeFoodForm()
     return render(request, 'users/admin_food_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_foods')
 def admin_food_update(request, pk):
     food = get_object_or_404(GlutenFreeFood, pk=pk)
     if request.method == 'POST':
         form = GlutenFreeFoodForm(request.POST, instance=food)
         if form.is_valid():
-            form.save()
+            food = form.save(commit=False)
+            if not food.added_by:
+                food.added_by = request.user
+            food.save()
             return redirect('admin_food_list')
     else:
         form = GlutenFreeFoodForm(instance=food)
     return render(request, 'users/admin_food_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_foods')
 def admin_food_delete(request, pk):
     food = get_object_or_404(GlutenFreeFood, pk=pk)
     if request.method == 'POST':
@@ -111,7 +134,7 @@ def admin_food_delete(request, pk):
     return render(request, 'users/admin_food_confirm_delete.html', {'food': food})
 
 # GlutenFreeVenue CRUD
-@superuser_required
+@editor_permission_required('can_edit_venues')
 def admin_venue_list(request):
     venues = GlutenFreeVenue.objects.all()
     q = request.GET.get('q')
@@ -130,32 +153,37 @@ def admin_venue_list(request):
         venues = venues.filter(district=district)
     if is_approved in ['true', 'false']:
         venues = venues.filter(is_approved=(is_approved == 'true'))
-    return render(request, 'users/admin_venue_list.html', {'venues': venues, 'request': request})
+    return render(request, 'users/admin_venue_list.html', {'venues': venues, 'request': request, 'cities': TURKISH_CITIES, 'districts': DISTRICTS})
 
-@superuser_required
+@editor_permission_required('can_edit_venues')
 def admin_venue_create(request):
     if request.method == 'POST':
         form = GlutenFreeVenueForm(request.POST)
         if form.is_valid():
-            form.save()
+            venue = form.save(commit=False)
+            venue.added_by = request.user
+            venue.save()
             return redirect('admin_venue_list')
     else:
         form = GlutenFreeVenueForm()
     return render(request, 'users/admin_venue_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_venues')
 def admin_venue_update(request, pk):
     venue = get_object_or_404(GlutenFreeVenue, pk=pk)
     if request.method == 'POST':
         form = GlutenFreeVenueForm(request.POST, instance=venue)
         if form.is_valid():
-            form.save()
+            venue = form.save(commit=False)
+            if not venue.added_by:
+                venue.added_by = request.user
+            venue.save()
             return redirect('admin_venue_list')
     else:
         form = GlutenFreeVenueForm(instance=venue)
     return render(request, 'users/admin_venue_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_venues')
 def admin_venue_delete(request, pk):
     venue = get_object_or_404(GlutenFreeVenue, pk=pk)
     if request.method == 'POST':
@@ -164,7 +192,7 @@ def admin_venue_delete(request, pk):
     return render(request, 'users/admin_venue_confirm_delete.html', {'venue': venue})
 
 # GlutenFreeHotel CRUD
-@superuser_required
+@editor_permission_required('can_edit_hotels')
 def admin_hotel_list(request):
     hotels = GlutenFreeHotel.objects.all()
     q = request.GET.get('q')
@@ -183,9 +211,9 @@ def admin_hotel_list(request):
         hotels = hotels.filter(district=district)
     if is_approved in ['true', 'false']:
         hotels = hotels.filter(is_approved=(is_approved == 'true'))
-    return render(request, 'users/admin_hotel_list.html', {'hotels': hotels, 'request': request})
+    return render(request, 'users/admin_hotel_list.html', {'hotels': hotels, 'request': request, 'cities': TURKISH_CITIES, 'districts': DISTRICTS})
 
-@superuser_required
+@editor_permission_required('can_edit_hotels')
 def admin_hotel_create(request):
     if request.method == 'POST':
         form = GlutenFreeHotelForm(request.POST)
@@ -198,7 +226,7 @@ def admin_hotel_create(request):
         form = GlutenFreeHotelForm()
     return render(request, 'users/admin_hotel_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_hotels')
 def admin_hotel_update(request, pk):
     hotel = get_object_or_404(GlutenFreeHotel, pk=pk)
     if request.method == 'POST':
@@ -213,7 +241,7 @@ def admin_hotel_update(request, pk):
         form = GlutenFreeHotelForm(instance=hotel)
     return render(request, 'users/admin_hotel_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_hotels')
 def admin_hotel_delete(request, pk):
     hotel = get_object_or_404(GlutenFreeHotel, pk=pk)
     if request.method == 'POST':
@@ -222,48 +250,55 @@ def admin_hotel_delete(request, pk):
     return render(request, 'users/admin_hotel_confirm_delete.html', {'hotel': hotel})
 
 # GlutenFreeMedicine CRUD
-@superuser_required
+@editor_permission_required('can_edit_medicines')
 def admin_medicine_list(request):
-    medicines = GlutenFreeMedicine.objects.all()
+    medicines = GlutenFreeMedicine.objects.select_related('brand').all()
     q = request.GET.get('q')
     brand_id = request.GET.get('brand')
     is_approved = request.GET.get('is_approved')
+
     if q:
         medicines = medicines.filter(
             Q(name__icontains=q) |
             Q(brand__name__icontains=q)
-        )
+        ).distinct()
     if brand_id:
         medicines = medicines.filter(brand_id=brand_id)
     if is_approved in ['true', 'false']:
         medicines = medicines.filter(is_approved=(is_approved == 'true'))
-    brands = Brand.objects.all()
+
+    brands = MedicineBrand.objects.exclude(name__iexact='Diğer').all()
     return render(request, 'users/admin_medicine_list.html', {'medicines': medicines, 'brands': brands, 'request': request})
 
-@superuser_required
+@editor_permission_required('can_edit_medicines')
 def admin_medicine_create(request):
     if request.method == 'POST':
         form = GlutenFreeMedicineForm(request.POST)
         if form.is_valid():
-            form.save()
+            medicine = form.save(commit=False)
+            medicine.added_by = request.user
+            medicine.save()
             return redirect('admin_medicine_list')
     else:
         form = GlutenFreeMedicineForm()
     return render(request, 'users/admin_medicine_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_medicines')
 def admin_medicine_update(request, pk):
     medicine = get_object_or_404(GlutenFreeMedicine, pk=pk)
     if request.method == 'POST':
         form = GlutenFreeMedicineForm(request.POST, instance=medicine)
         if form.is_valid():
-            form.save()
+            medicine = form.save(commit=False)
+            if not medicine.added_by:
+                medicine.added_by = request.user
+            medicine.save()
             return redirect('admin_medicine_list')
     else:
         form = GlutenFreeMedicineForm(instance=medicine)
     return render(request, 'users/admin_medicine_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_medicines')
 def admin_medicine_delete(request, pk):
     medicine = get_object_or_404(GlutenFreeMedicine, pk=pk)
     if request.method == 'POST':
@@ -272,44 +307,58 @@ def admin_medicine_delete(request, pk):
     return render(request, 'users/admin_medicine_confirm_delete.html', {'medicine': medicine})
 
 # GlutenFreeRecipe CRUD
-@superuser_required
+@editor_permission_required('can_edit_recipes')
 def admin_recipe_list(request):
-    recipes = GlutenFreeRecipe.objects.all()
+    recipes = GlutenFreeRecipe.objects.select_related('category').all()
     q = request.GET.get('q')
+    category_id = request.GET.get('category')
     is_approved = request.GET.get('is_approved')
+    
     if q:
         recipes = recipes.filter(
             Q(name__icontains=q) |
-            Q(description__icontains=q)
-        )
+            Q(description__icontains=q) |
+            Q(ingredients__icontains=q) |
+            Q(instructions__icontains=q) |
+            Q(category__name__icontains=q)
+        ).distinct()
+    if category_id:
+        recipes = recipes.filter(category_id=category_id)
     if is_approved in ['true', 'false']:
         recipes = recipes.filter(is_approved=(is_approved == 'true'))
-    return render(request, 'users/admin_recipe_list.html', {'recipes': recipes, 'request': request})
+    
+    categories = RecipeCategory.objects.exclude(name__iexact='Diğer').all()
+    return render(request, 'users/admin_recipe_list.html', {'recipes': recipes, 'categories': categories, 'request': request})
 
-@superuser_required
+@editor_permission_required('can_edit_recipes')
 def admin_recipe_create(request):
     if request.method == 'POST':
         form = GlutenFreeRecipeForm(request.POST)
         if form.is_valid():
-            form.save()
+            recipe = form.save(commit=False)
+            recipe.added_by = request.user
+            recipe.save()
             return redirect('admin_recipe_list')
     else:
         form = GlutenFreeRecipeForm()
     return render(request, 'users/admin_recipe_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_recipes')
 def admin_recipe_update(request, pk):
     recipe = get_object_or_404(GlutenFreeRecipe, pk=pk)
     if request.method == 'POST':
         form = GlutenFreeRecipeForm(request.POST, instance=recipe)
         if form.is_valid():
-            form.save()
+            recipe = form.save(commit=False)
+            if not recipe.added_by:
+                recipe.added_by = request.user
+            recipe.save()
             return redirect('admin_recipe_list')
     else:
         form = GlutenFreeRecipeForm(instance=recipe)
     return render(request, 'users/admin_recipe_form.html', {'form': form})
 
-@superuser_required
+@editor_permission_required('can_edit_recipes')
 def admin_recipe_delete(request, pk):
     item = get_object_or_404(GlutenFreeRecipe, pk=pk)
     if request.method == 'POST':
@@ -324,6 +373,19 @@ def admin_users_list(request):
     return render(request, 'users/admin_users_list.html', {'users': users})
 
 @superuser_required
+def admin_user_update(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Kullanıcı başarıyla güncellendi.')
+            return redirect('admin_users_list')
+    else:
+        form = UserUpdateForm(instance=user)
+    return render(request, 'users/admin_user_form.html', {'form': form, 'user': user})
+
+@superuser_required
 def admin_user_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
     if user == request.user:
@@ -336,7 +398,7 @@ def admin_user_delete(request, pk):
     messages.error(request, 'Geçersiz istek.')
     return redirect('admin_users_list')
 
-@superuser_required
+@editor_permission_required('can_edit_foods')
 def add_brand(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -346,8 +408,13 @@ def add_brand(request):
         return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
     return JsonResponse({'success': False, 'error': 'Sadece POST.'})
 
-@superuser_required
+@login_required
 def add_category(request):
+    # Hem food hem de recipe editörleri kategori ekleyebilir
+    if not (request.user.is_superuser or 
+            (request.user.role == 'editor' and (request.user.can_edit_foods or request.user.can_edit_recipes))):
+        return JsonResponse({'success': False, 'error': 'Yetki yok.'})
+    
     if request.method == 'POST':
         name = request.POST.get('name')
         if name:
@@ -356,7 +423,7 @@ def add_category(request):
         return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
     return JsonResponse({'success': False, 'error': 'Sadece POST.'})
 
-@superuser_required
+@editor_permission_required('can_edit_medicines')
 def add_medicine_brand(request):
     if request.method == 'POST':
         name = request.POST.get('name')

@@ -72,6 +72,7 @@
       <table class="table">
         <thead>
           <tr>
+            <th>Tarih</th>
             <th>Ekleyen</th>
             <th>Otel Adı</th>
             <th>Konum</th>
@@ -82,6 +83,12 @@
         <tbody>
           {% for hotel in hotels %}
           <tr>
+            <td>
+              <div class="date-info">
+                <div class="date-value">{{ hotel.approved_at|date:"d.m.Y" }}</div>
+                <div class="time-value text-muted small">{{ hotel.approved_at|date:"H:i" }}</div>
+              </div>
+            </td>
             <td>
               <div class="user-info">
                 {% if hotel.added_by %}
@@ -161,5 +168,21 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ cities|json_script:"cities-data" }}
+{{ districts|json_script:"districts-data" }}
 <script src="{% static 'js/style.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cities = JSON.parse(document.getElementById('cities-data').textContent);
+        const districts = JSON.parse(document.getElementById('districts-data').textContent);
+        setupCityDistrictFilters(
+            'hotel-filter-city',
+            'hotel-filter-district',
+            cities,
+            districts,
+            '{{ request.GET.city|default:"" }}',
+            '{{ request.GET.district|default:"" }}'
+        );
+    });
+</script>
 {% endblock %} 

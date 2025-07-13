@@ -86,14 +86,34 @@
                   </div>
                   {% if food.description %}
                   <div class="detail-item">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <span class="detail-label">Açıklama:</span>
-                    <p class="detail-description">{{ food.description }}</p>
+                    <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#descriptionModal-{{ food.id }}">
+                      <i class="bi bi-info-circle me-1"></i> Açıklama
+                    </button>
                   </div>
                   {% endif %}
                 </div>
               </div>
             </div>
+
+            <!-- Modal for Description -->
+            {% if food.description %}
+            <div class="modal fade" id="descriptionModal-{{ food.id }}" tabindex="-1" aria-labelledby="descriptionModalLabel-{{ food.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="descriptionModalLabel-{{ food.id }}">{{ food.name }} - Açıklama</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>{{ food.description }}</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
           {% endfor %}
         </div>
       </div>
@@ -116,14 +136,34 @@
                       </div>
                       {% if food.description %}
                       <div class="detail-item">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <span class="detail-label">Açıklama:</span>
-                        <p class="detail-description">{{ food.description }}</p>
+                        <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#descriptionModal-{{ food.id }}">
+                          <i class="bi bi-info-circle me-1"></i> Açıklama
+                        </button>
                       </div>
                       {% endif %}
                     </div>
                   </div>
                 </div>
+
+                <!-- Modal for Description -->
+                {% if food.description %}
+                <div class="modal fade" id="descriptionModal-{{ food.id }}" tabindex="-1" aria-labelledby="descriptionModalLabel-{{ food.id }}" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="descriptionModalLabel-{{ food.id }}">{{ food.name }} - Açıklama</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p>{{ food.description }}</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
               {% endfor %}
             </div>
           {% endfor %}
@@ -145,14 +185,34 @@
                       </div>
                       {% if food.description %}
                       <div class="detail-item">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <span class="detail-label">Açıklama:</span>
-                        <p class="detail-description">{{ food.description }}</p>
+                        <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#descriptionModal-{{ food.id }}">
+                          <i class="bi bi-info-circle me-1"></i> Açıklama
+                        </button>
                       </div>
                       {% endif %}
                     </div>
                   </div>
                 </div>
+
+                <!-- Modal for Description -->
+                {% if food.description %}
+                <div class="modal fade" id="descriptionModal-{{ food.id }}" tabindex="-1" aria-labelledby="descriptionModalLabel-{{ food.id }}" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="descriptionModalLabel-{{ food.id }}">{{ food.name }} - Açıklama</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p>{{ food.description }}</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
               {% endfor %}
             </div>
           </div>
@@ -176,14 +236,34 @@
                     </div>
                     {% if food.description %}
                     <div class="detail-item">
-                      <i class="bi bi-info-circle me-2"></i>
-                      <span class="detail-label">Açıklama:</span>
-                      <p class="detail-description">{{ food.description }}</p>
+                      <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#descriptionModal-{{ food.id }}">
+                        <i class="bi bi-info-circle me-1"></i> Açıklama
+                      </button>
                     </div>
                     {% endif %}
                   </div>
                 </div>
               </div>
+
+              <!-- Modal for Description -->
+              {% if food.description %}
+              <div class="modal fade" id="descriptionModal-{{ food.id }}" tabindex="-1" aria-labelledby="descriptionModalLabel-{{ food.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="descriptionModalLabel-{{ food.id }}">{{ food.name }} - Açıklama</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>{{ food.description }}</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
             {% endfor %}
           </div>
         {% endfor %}

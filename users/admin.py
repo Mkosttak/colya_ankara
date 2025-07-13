@@ -1,83 +1,101 @@
 from django.contrib import admin
-from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, Brand, Category, User
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, FoodBrand, MedicineBrand, Category, GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe
+from django.utils.html import format_html
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'first_name', 'last_name', 'role', 'is_active', 'is_superuser', 'last_login')
-    list_filter = ('role', 'is_active', 'is_superuser')
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'first_name', 'last_name', 'role', 'is_active', 'is_staff', 'date_joined')
+    list_filter = ('role', 'is_active', 'is_staff')
     search_fields = ('username', 'first_name', 'last_name')
-    ordering = ('-is_active', 'username')
+    ordering = ('-date_joined',)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Kişisel Bilgiler', {'fields': ('first_name', 'last_name', 'role')}),
-        ('Yetkiler', {'fields': ('is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Yetkiler', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Önemli Tarihler', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'first_name', 'last_name', 'role', 'password1', 'password2', 'is_active', 'is_superuser'),
+            'fields': ('username', 'password1', 'password2', 'role', 'is_active', 'is_staff', 'is_superuser'),
         }),
     )
-    list_per_page = 25
-    verbose_name = 'Kullanıcı'
-    verbose_name_plural = 'Kullanıcılar'
 
-# Diğer admin kayıtları (önceki kodlarınız)
-@admin.register(GlutenFreeFood)
-class GlutenFreeFoodAdmin(admin.ModelAdmin):
-    def category_list(self, obj):
-        return ", ".join([c.name for c in obj.category.all()])
-    category_list.short_description = 'Kategori'
-    list_display = ('name', 'brand', 'category_list', 'is_approved', 'approved_at', 'added_by')
-    search_fields = ('name', 'brand__name', 'category__name')
-    list_filter = ('is_approved',)
-    verbose_name = 'Glutensiz Gıda'
-    verbose_name_plural = 'Glutensiz Gıdalar'
-
-@admin.register(GlutenFreeVenue)
-class GlutenFreeVenueAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_approved', 'approved_at', 'added_by')
-    search_fields = ('name', 'address', 'contact')
-    list_filter = ('is_approved',)
-    verbose_name = 'Glutensiz Mekan'
-    verbose_name_plural = 'Glutensiz Mekanlar'
-
-@admin.register(GlutenFreeHotel)
-class GlutenFreeHotelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_approved', 'approved_at', 'added_by')
-    search_fields = ('name', 'address', 'contact')
-    list_filter = ('is_approved',)
-    verbose_name = 'Glutensiz Otel'
-    verbose_name_plural = 'Glutensiz Oteller'
-
-@admin.register(GlutenFreeMedicine)
-class GlutenFreeMedicineAdmin(admin.ModelAdmin):
-    list_display = ('name', 'brand', 'is_approved', 'approved_at', 'added_by')
-    search_fields = ('name', 'brand__name')
-    list_filter = ('is_approved',)
-    verbose_name = 'Glutensiz İlaç'
-    verbose_name_plural = 'Glutensiz İlaçlar'
-
-@admin.register(GlutenFreeRecipe)
-class GlutenFreeRecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_approved', 'approved_at', 'created_at', 'added_by')
-    search_fields = ('name',)
-    list_filter = ('is_approved',)
-    verbose_name = 'Glutensiz Tarif'
-    verbose_name_plural = 'Glutensiz Tarifler'
-
-@admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
+@admin.register(FoodBrand)
+class FoodBrandAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    verbose_name = 'Marka'
-    verbose_name_plural = 'Markalar'
+
+@admin.register(MedicineBrand)
+class MedicineBrandAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    verbose_name = 'Kategori'
-    verbose_name_plural = 'Kategoriler'
+
+@admin.register(GlutenFreeFood)
+class GlutenFreeFoodAdmin(admin.ModelAdmin):
+    list_display = ('name', 'get_brand', 'get_category', 'is_approved', 'approved_at', 'added_by')
+    list_filter = ('is_approved', 'brand', 'category')
+    search_fields = ('name', 'brand__name', 'category__name')
+    autocomplete_fields = ['brand', 'category']
+    actions = ['make_approved']
+    def get_brand(self, obj):
+        return obj.brand.name if obj.brand else '-'
+    get_brand.short_description = 'Marka'
+    def get_category(self, obj):
+        return obj.category.name if obj.category else '-'
+    get_category.short_description = 'Kategori'
+    def make_approved(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} kayıt onaylandı.")
+    make_approved.short_description = "Seçili ürünleri onayla"
+
+@admin.register(GlutenFreeVenue)
+class GlutenFreeVenueAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'district', 'is_approved', 'approved_at', 'added_by')
+    list_filter = ('city', 'district', 'is_approved')
+    search_fields = ('name', 'city', 'district', 'address')
+    actions = ['make_approved']
+    def make_approved(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} mekan onaylandı.")
+    make_approved.short_description = "Seçili mekanları onayla"
+
+@admin.register(GlutenFreeHotel)
+class GlutenFreeHotelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'district', 'is_approved', 'approved_at', 'added_by')
+    list_filter = ('city', 'district', 'is_approved')
+    search_fields = ('name', 'city', 'district', 'address')
+    actions = ['make_approved']
+    def make_approved(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} otel onaylandı.")
+    make_approved.short_description = "Seçili otelleri onayla"
+
+@admin.register(GlutenFreeMedicine)
+class GlutenFreeMedicineAdmin(admin.ModelAdmin):
+    list_display = ('name', 'brand', 'is_approved', 'approved_at', 'added_by')
+    list_filter = ('brand', 'is_approved')
+    search_fields = ('name', 'brand__name')
+    actions = ['make_approved']
+    def make_approved(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} ilaç onaylandı.")
+    make_approved.short_description = "Seçili ilaçları onayla"
+
+@admin.register(GlutenFreeRecipe)
+class GlutenFreeRecipeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_approved', 'created_at', 'approved_at', 'added_by')
+    list_filter = ('is_approved',)
+    search_fields = ('name', 'description')
+    actions = ['make_approved']
+    def make_approved(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} tarif onaylandı.")
+    make_approved.short_description = "Seçili tarifleri onayla"
+
+# Türkçeleştirme için verbose_name ve verbose_name_plural alanları modelde zaten ayarlıysa admin panelinde otomatik Türkçe görünür. Ekstra bir şey gerekirse modelde güncelleme yapılabilir.

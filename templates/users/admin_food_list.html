@@ -78,6 +78,7 @@
       <table class="table">
         <thead>
           <tr>
+            <th>Tarih</th>
             <th>Ekleyen</th>
             <th>Ürün Adı</th>
             <th>Marka</th>
@@ -89,6 +90,12 @@
         <tbody>
           {% for food in foods %}
           <tr>
+            <td>
+              <div class="date-info">
+                <div class="date-value">{{ food.approved_at|date:"d.m.Y" }}</div>
+                <div class="time-value text-muted small">{{ food.approved_at|date:"H:i" }}</div>
+              </div>
+            </td>
             <td>
               <div class="user-info">
                 {% if food.added_by %}

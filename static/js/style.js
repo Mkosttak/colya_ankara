@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
   let categoryHandler = null;
   if (categoryModal && categoryForm) {
     categoryModal.addEventListener('shown.bs.modal', function () {
+      // Formu temizle
+      categoryForm.reset();
+      const submitBtn = categoryForm.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = false;
+      
       if (!categoryHandler) {
         categoryHandler = function(e) {
           e.preventDefault();
@@ -22,31 +27,22 @@ document.addEventListener('DOMContentLoaded', function() {
           .then(response => response.json())
           .then(data => {
             if (data.status === 'success' || data.success === true) {
-              var selects = $('#category-fields select');
-              var selectedVals = selects.map(function(){ return $(this).val(); }).get();
-              // Tüm selectlere yeni option'ı ekle
-              selects.each(function(){
-                if ($(this).find('option[value="'+data.id+'"]').length === 0) {
-                  $(this).append(new Option(data.name, data.id));
-                }
-              });
-              // Seçili değerleri tekrar ata
-              selects.each(function(i){
-                if (i < selectedVals.length && selectedVals[i]) {
-                  $(this).val(selectedVals[i]).trigger('change');
-                }
-              });
-              // Son selectte yeni eklenen kategori seçili olsun
-              $(selects[selects.length-1]).val(data.id).trigger('change');
+              var categorySelect = $('#id_category');
+              var currentVal = categorySelect.val();
+              // Yeni kategoriyi select'e ekle
+              if (categorySelect.find('option[value="'+data.id+'"]').length === 0) {
+                categorySelect.append(new Option(data.name, data.id));
+              }
+              // Yeni eklenen kategoriyi seç
+              categorySelect.val(data.id).trigger('change');
               const categoryAddMsg = document.getElementById('categoryAddMsg');
               categoryAddMsg.textContent = 'Kategori başarıyla eklendi.';
               const modal = bootstrap.Modal.getInstance(categoryModal);
               if (modal) modal.hide();
               setTimeout(() => {
                 categoryAddMsg.textContent = '';
-                window.location.reload();
-              }, 400);
-        } else {
+              }, 2000);
+            } else {
               if (submitBtn) submitBtn.disabled = false;
             }
           }).catch(() => {
@@ -72,6 +68,11 @@ document.addEventListener('DOMContentLoaded', function() {
   let brandHandler = null;
   if (brandModal && brandForm) {
     brandModal.addEventListener('shown.bs.modal', function () {
+      // Formu temizle
+      brandForm.reset();
+      const submitBtn = brandForm.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = false;
+      
       if (!brandHandler) {
         brandHandler = function(e) {
           e.preventDefault();
@@ -108,8 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if (modal) modal.hide();
               setTimeout(() => {
                 brandAddMsg.textContent = '';
-                window.location.reload();
-              }, 400);
+              }, 2000);
             } else {
               if (submitBtn) submitBtn.disabled = false;
             }
@@ -132,81 +132,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Kategori ve marka alanlarında select2 başlat
   if (window.jQuery) {
-    // Dinamik kategori alanları
-    function initCategorySelect2(select) {
-      $(select).select2({
+    // Kategori select2
+    if ($('#id_category').length) {
+      $('#id_category').select2({
         width: '100%',
         placeholder: 'Kategori seçin',
-        allowClear: false,
+        allowClear: true,
         language: 'tr',
         theme: 'default',
         minimumResultsForSearch: 0
       });
     }
-    // İlk kategori select2'yi başlat
-    if ($('#category-fields select').length) {
-      initCategorySelect2($('#category-fields select').first());
-    }
-    // Dinamik kategori ekleme
-    function addCategorySelect() {
-      var count = $('#category-fields select').length;
-      if (count >= 5) return;
-      var $first = $('#category-fields select').first();
-      var $row = $('<div class="category-select-row" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 4px;"></div>');
-      var $select = $first.clone();
-      $select.val('');
-      $select.removeAttr('name');
-      $select.attr('name', 'category_' + count);
-      $select.attr('id', 'id_category_' + count);
-      $row.append($('<div style="flex: 1; min-width: 0;"></div>').append($select));
-      var $removeBtn = $('<button type="button" class="btn btn-outline-danger" title="Kaldır">&times;</button>');
-      $removeBtn.on('click', function() {
-        $row.remove();
-        updateCategorySelects();
-      });
-      $row.append($removeBtn);
-      $('#category-fields').append($row);
-      initCategorySelect2($select);
-      updateCategorySelects();
-    }
-    // Kategori seçiminde yeni select ekle
-    $('#category-fields').on('change', 'select', function() {
-      var count = $('#category-fields select').length;
-      if ($(this).val() && count < 5 && $('#category-fields select').last()[0] === this) {
-        addCategorySelect();
-      }
-      updateCategorySelects();
-    });
-    // Seçili kategorileri diğer selectlerde gizle
-    function updateCategorySelects() {
-      var selected = [];
-      $('#category-fields select').each(function() {
-        var val = $(this).val();
-        if (val) selected.push(val);
-      });
-      $('#category-fields select').each(function() {
-        var $sel = $(this);
-        var currentVal = $sel.val();
-        $sel.find('option').each(function() {
-          var v = $(this).attr('value');
-          if (v && selected.includes(v) && currentVal !== v) {
-            $(this).prop('disabled', true).hide();
-          } else {
-            $(this).prop('disabled', false).show();
-          }
-        });
-        // select2'yi güncelle
-        $sel.trigger('change.select2');
-      });
-    }
-    // İlk select2 başlatıldığında da güncelle
-    updateCategorySelects();
     // Marka select2
     if ($('#id_brand').length) {
       $('#id_brand').select2({
         width: '100%',
         placeholder: 'Marka seçin',
-        allowClear: false,
+        allowClear: true,
         language: 'tr',
         theme: 'default',
         minimumResultsForSearch: 0
@@ -222,10 +164,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const cityOtherInput = document.getElementById('id_city_other');
   const districtOtherInput = document.getElementById('id_district_other');
 
+  console.log('Elements found:');
+  console.log('citySelect:', citySelect);
+  console.log('districtSelect:', districtSelect);
+  console.log('cityOtherInput:', cityOtherInput);
+  console.log('districtOtherInput:', districtOtherInput);
+
   // Elementlerin etrafındaki sarmalayıcı div'leri yakala (Django'nun form yapısına göre)
   const districtSelectWrapper = document.getElementById('field-district');
   const cityOtherWrapper = document.getElementById('field-city_other');
   const districtOtherWrapper = document.getElementById('field-district_other');
+  
+  console.log('Wrapper elements found:');
+  console.log('districtSelectWrapper:', districtSelectWrapper);
+  console.log('cityOtherWrapper:', cityOtherWrapper);
+  console.log('districtOtherWrapper:', districtOtherWrapper);
 
   // Fonksiyon: Manuel giriş alanlarının görünürlüğünü ayarlar
   function toggleManualInputs(show) {
@@ -250,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Fonksiyon: Sunucudan ilçeleri çeker ve dropdown'ı günceller
-  function updateDistricts(city) {
+  function updateDistricts(city, selectedDistrict = null) {
       if (city && city !== 'Diğer') {
           const url = `/users/ajax/get-districts/?city=${encodeURIComponent(city)}`;
           fetch(url)
@@ -263,6 +216,11 @@ document.addEventListener('DOMContentLoaded', function() {
                           const option = new Option(district, district);
                           districtSelect.add(option);
                       });
+                      
+                      // Eğer selectedDistrict belirtilmişse ve listede varsa, onu seç
+                      if (selectedDistrict && data.districts.includes(selectedDistrict)) {
+                          districtSelect.value = selectedDistrict;
+                      }
                   }
               });
       } else {
@@ -273,12 +231,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // Sayfa ilk yüklendiğinde durumu kontrol et
   if (citySelect) {
       const initialCity = citySelect.value;
+      const initialDistrict = districtSelect ? districtSelect.value : null;
+      
+      console.log('Initial city:', initialCity);
+      console.log('Initial district:', initialDistrict);
+      
       if (initialCity === 'Diğer') {
+          console.log('City is "Diğer", showing manual inputs');
           toggleManualInputs(true);
           updateDistricts(null);
       } else {
+          console.log('City is not "Diğer", showing district dropdown');
           toggleManualInputs(false);
-          updateDistricts(initialCity);
+          updateDistricts(initialCity, initialDistrict);
       }
       
       // Sayfa yüklendiğinde ilçe alanının zorunlu olup olmadığını ayarla
@@ -294,8 +259,60 @@ document.addEventListener('DOMContentLoaded', function() {
               updateDistricts(null);
           } else {
               toggleManualInputs(false);
-              updateDistricts(selectedCity);
+              updateDistricts(selectedCity, null); // Yeni şehir seçildiğinde ilçe seçimini sıfırla
           }
       });
   }
 });
+
+function setupCityDistrictFilters(citySelectId, districtSelectId, cities, districts, initialCity, initialDistrict) {
+    const citySelect = document.getElementById(citySelectId);
+    const districtSelect = document.getElementById(districtSelectId);
+
+    if (!citySelect || !districtSelect) return;
+
+    // Populate cities
+    cities.forEach(city => {
+        const option = new Option(city[1], city[0]);
+        citySelect.add(option);
+    });
+
+    // Set initial city
+    if (initialCity) {
+        citySelect.value = initialCity;
+    }
+
+    // Populate districts based on city
+    function updateDistricts() {
+        const selectedCity = citySelect.value;
+        districtSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
+
+        if (selectedCity && districts[selectedCity] && selectedCity !== 'Diğer') {
+            // Şehir seçili - ilçe dropdown'ını etkinleştir
+            districtSelect.disabled = false;
+            districtSelect.style.opacity = '1';
+            districtSelect.style.cursor = 'pointer';
+            
+            districts[selectedCity].forEach(district => {
+                const option = new Option(district, district);
+                districtSelect.add(option);
+            });
+        } else {
+            // Şehir seçili değil - ilçe dropdown'ını devre dışı bırak
+            districtSelect.disabled = true;
+            districtSelect.style.opacity = '0.5';
+            districtSelect.style.cursor = 'not-allowed';
+        }
+
+        // Set initial district
+        if (selectedCity === initialCity && initialDistrict) {
+            districtSelect.value = initialDistrict;
+        }
+    }
+
+    // Initial population
+    updateDistricts();
+
+    // Event listener
+    citySelect.addEventListener('change', updateDistricts);
+}

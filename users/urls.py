@@ -6,7 +6,7 @@ from .views import (
     admin_hotel_list, admin_hotel_create, admin_hotel_update, admin_hotel_delete,
     admin_medicine_list, admin_medicine_create, admin_medicine_update, admin_medicine_delete,
     admin_recipe_list, admin_recipe_create, admin_recipe_update, admin_recipe_delete,
-    add_brand, add_category, admin_users_list, admin_user_delete, add_medicine_brand,
+    add_brand, add_category, admin_users_list, admin_user_delete, admin_user_update, add_medicine_brand,
     get_districts_ajax
 )
 from django.contrib.auth.views import LogoutView
@@ -51,6 +51,7 @@ urlpatterns += [
     path('ajax/add-category/', add_category, name='add_category_ajax'),
     path('ajax/add-medicine-brand/', add_medicine_brand, name='add_medicine_brand_ajax'),
     path('admin/users/', admin_users_list, name='admin_users_list'),
+    path('admin/users/<int:pk>/update/', admin_user_update, name='admin_user_update'),
     path('admin/users/<int:pk>/delete/', admin_user_delete, name='admin_user_delete'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
 ]

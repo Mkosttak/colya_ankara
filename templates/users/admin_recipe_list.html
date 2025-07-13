@@ -58,10 +58,10 @@
       <table class="table">
         <thead>
           <tr>
+            <th>Eklenen Tarih</th>
             <th>Ekleyen</th>
             <th>Tarif Adı</th>
             <th>Açıklama</th>
-            <th>Hazırlama Süresi</th>
             <th>Onay Durumu</th>
             <th>İşlemler</th>
           </tr>
@@ -69,6 +69,12 @@
         <tbody>
           {% for recipe in recipes %}
           <tr>
+            <td>
+              <div class="date-info">
+                <div class="date-value">{{ recipe.created_at|date:"d.m.Y" }}</div>
+                <div class="time-value text-muted small">{{ recipe.created_at|date:"H:i" }}</div>
+              </div>
+            </td>
             <td>
               <div class="user-info">
                 {% if recipe.added_by %}
@@ -93,17 +99,6 @@
               {% if recipe.description %}
                 <div class="description-info">
                   <span class="description-text">{{ recipe.description|truncatechars:60 }}</span>
-                </div>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if recipe.preparation_time %}
-                <div class="time-info">
-                  <span class="time-badge">
-                    <i class="bi bi-clock me-1"></i>{{ recipe.preparation_time }}
-                  </span>
                 </div>
               {% else %}
                 <span class="text-muted">—</span>

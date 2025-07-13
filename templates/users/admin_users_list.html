@@ -13,7 +13,8 @@
       <th>Rol</th>
       <th>Son Giriş</th>
       <th>Durum</th>
-      <th>İşlem</th>
+      <th>Düzenle</th>
+      <th>Sil</th>
     </tr>
   </thead>
   <tbody>
@@ -26,6 +27,9 @@
       <td>{% if user.last_login %}{{ user.last_login|date:'Y-m-d H:i' }}{% else %}-{% endif %}</td>
       <td>{% if user.is_active %}Aktif{% else %}Pasif{% endif %}</td>
       <td>
+        <a href="{% url 'admin_user_update' user.pk %}" class="btn btn-sm btn-primary">Düzenle</a>
+      </td>
+      <td>
         {% if request.user.is_superuser and user != request.user %}
           <form method="post" action="{% url 'admin_user_delete' user.pk %}" style="display:inline;">
             {% csrf_token %}
@@ -35,7 +39,7 @@
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="7">Kullanıcı bulunamadı.</td></tr>
+    <tr><td colspan="8">Kullanıcı bulunamadı.</td></tr>
     {% endfor %}
   </tbody>
 </table>

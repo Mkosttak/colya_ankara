@@ -2,22 +2,87 @@
 {% block content %}
 {% include 'partials/_messages.html' %}
 <div class="row justify-content-center">
-  <div class="col-md-6 col-lg-4">
+  <div class="col-md-8 col-lg-6">
     <h2 class="mb-4 text-center">Yeni Kullanıcı Oluştur</h2>
     <form method="post">
       {% csrf_token %}
       {{ form.non_field_errors }}
-      {% for field in form %}
-        <div class="mb-3">
-          {{ field.label_tag }}
-          {{ field }}
-          {% if field.errors %}
-            <div class="text-danger small">{{ field.errors|striptags }}</div>
-          {% endif %}
+      
+      <!-- Basic Info -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <div class="text-danger small">{{ form.first_name.errors|striptags }}</div>
+            {% endif %}
+          </div>
         </div>
-      {% endfor %}
+        <div class="col-md-6">
+          <div class="mb-3">
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <div class="text-danger small">{{ form.last_name.errors|striptags }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="text-danger small">{{ form.username.errors|striptags }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="mb-3">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="text-danger small">{{ form.password.errors|striptags }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="mb-3">
+        {{ form.role.label_tag }}
+        {{ form.role }}
+        {% if form.role.errors %}
+          <div class="text-danger small">{{ form.role.errors|striptags }}</div>
+        {% endif %}
+      </div>
+      
+      <!-- Editor Permissions -->
+      <div class="mb-3">
+        <label class="form-label">Editör Yetkileri</label>
+        <div class="permission-checkboxes">
+          <div class="form-check">
+            {{ form.can_edit_foods }}
+            <label class="form-check-label" for="id_can_edit_foods">Glutensiz Gıda Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_venues }}
+            <label class="form-check-label" for="id_can_edit_venues">Glutensiz Mekan Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_hotels }}
+            <label class="form-check-label" for="id_can_edit_hotels">Glutensiz Otel Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_medicines }}
+            <label class="form-check-label" for="id_can_edit_medicines">Glutensiz İlaç Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_recipes }}
+            <label class="form-check-label" for="id_can_edit_recipes">Glutensiz Tarif Yetki</label>
+          </div>
+        </div>
+      </div>
+      
       <button type="submit" class="btn btn-success w-100">Kullanıcı Oluştur</button>
     </form>
   </div>
 </div>
-{% endblock %} 
+{% endblock %}
