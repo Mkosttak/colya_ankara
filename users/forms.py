@@ -1,6 +1,6 @@
 from os import name
 from django import forms
-from .models import User
+from .models import User, TURKISH_CITIES
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordChangeForm
 from .models import GlutenFreeFood, GlutenFreeVenue, GlutenFreeHotel, GlutenFreeMedicine, GlutenFreeRecipe, Category
@@ -77,28 +77,16 @@ class GlutenFreeVenueForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['name'].required = True
         self.fields['city'].required = True
-        self.fields['district'].required = True
+        # İlçe artık zorunlu değil, şehir seçildikten sonra dolacak
+        self.fields['district'].required = False
         self.fields['name'].error_messages = {'required': 'Mekan adı zorunludur.'}
         self.fields['city'].error_messages = {'required': 'Şehir alanı zorunludur.'}
-        self.fields['district'].error_messages = {'required': 'İlçe alanı zorunludur.'}
-        # Add data-selected attribute for JS to use
-        if self.instance and self.instance.pk:
-            self.fields['city'].widget.attrs['data-selected'] = self.instance.city or ''
-            self.fields['district'].widget.attrs['data-selected'] = self.instance.district or ''
-        # self.fields['city'].empty_label = 'Şehir seçiniz'  # CharField için geçerli değil
-        # self.fields['city'].initial = None  # CharField için gereksiz
-
-    def clean(self):
-        cleaned_data = super().clean()
-        city = cleaned_data.get('city')
-        custom_city = self.data.get('custom_city_name')
-        if city == 'Diğer' and custom_city:
-            cleaned_data['city'] = custom_city
-        return cleaned_data
 
     class Meta:
         model = GlutenFreeVenue
-        fields = ['name', 'gluten_free_products', 'city', 'district', 'contact', 'address', 'website', 'description', 'is_approved']
+        # Formda gösterilecek alanlar
+        fields = ['name', 'city', 'district', 'gluten_free_products', 'contact', 'address', 'website', 'description', 'is_approved']
+        # Alanların etiketleri
         labels = {
             'name': 'Mekan Adı',
             'city': 'Şehir',
@@ -110,15 +98,18 @@ class GlutenFreeVenueForm(forms.ModelForm):
             'website': 'Web Sitesi',
             'gluten_free_products': 'Glutensiz Ürünler',
         }
+        # Alanların HTML widget'ları ve özellikleri
         widgets = {
-            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}),
-            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            # ID'ler JavaScript kodunda kullanılacak
+            'city': forms.Select(attrs={'class': 'form-select', 'id': 'id_city'}, choices=[('', 'İl seçiniz')] + list(TURKISH_CITIES)),
+            'district': forms.Select(attrs={'class': 'form-select', 'id': 'id_district'}, choices=[('', 'İlçe seçiniz')]),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'contact': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
             'gluten_free_products': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 class GlutenFreeHotelForm(forms.ModelForm):

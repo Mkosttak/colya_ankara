@@ -14,6 +14,8 @@ from django.db.models import Q, QuerySet
 from .models import User
 from typing import Any
 from .models import MedicineBrand
+# Yeni oluşturduğumuz turkey_data.py dosyasından fonksiyonu import ediyoruz
+from .turkey_data import get_districts
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -365,3 +367,13 @@ def add_medicine_brand(request):
             return JsonResponse({'success': True, 'id': brand.id, 'name': brand.name})
         return JsonResponse({'success': False, 'error': 'İsim gerekli.'})
     return JsonResponse({'success': False, 'error': 'Sadece POST.'})
+
+# Şehir seçildiğinde ilçeleri getirecek olan yeni view
+@login_required
+def get_districts_ajax(request):
+    # 'city' parametresini GET isteğinden alıyoruz
+    city = request.GET.get('city')
+    # get_districts fonksiyonu ile o şehre ait ilçeleri alıyoruz
+    districts = get_districts(city)
+    # İlçeleri JSON formatında geri döndürüyoruz
+    return JsonResponse({'districts': districts})

@@ -213,4 +213,84 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+
+  // --- Dinamik Şehir-İlçe Dropdown Kodu ---
+
+  // Formdaki şehir ve ilçe seçim alanlarını ID'leri ile yakalıyoruz
+  const citySelect = document.getElementById('id_city');
+  const districtSelect = document.getElementById('id_district');
+
+  // Eğer bu iki element sayfada varsa, kodu çalıştır
+  if (citySelect && districtSelect) {
+      
+      // Düzenleme sayfasında, form ilk yüklendiğinde ilçe alanının dolu gelmesi için
+      // mevcut ilçe değerini bir değişkende saklayalım
+      const initialSelectedDistrict = districtSelect.value;
+
+      // İlçe dropdown'ının etrafındaki div'i bulalım (başlangıçta gizlemek/göstermek için)
+      // Bu genellikle form elemanının parent'ının parent'ı olur. Yapınıza göre ayarlayınız.
+      // Genellikle Django formları <p><label>...</label> <select>...</select></p> gibi bir yapı oluşturur.
+      // Veya bir <div> içinde olabilirler. Tarayıcının "Inspect" aracıyla doğru elementi bulun.
+      // Örnek olarak, ilçe select elementinin parent elementini hedef alıyoruz.
+      const districtWrapper = districtSelect.parentElement;
+
+      // Şehir seçimi değiştiğinde tetiklenecek fonksiyon
+      citySelect.addEventListener('change', function() {
+          const selectedCity = this.value;
+          updateDistricts(selectedCity);
+      });
+
+      // Sayfa ilk yüklendiğinde mevcut şehir seçiliyse ilçeleri doldur
+      if (citySelect.value) {
+          updateDistricts(citySelect.value, initialSelectedDistrict);
+      } else {
+          // Şehir seçili değilse ilçe alanını gizle
+          if(districtWrapper) districtWrapper.style.display = 'none';
+      }
+
+      // Sunucudan ilçe verilerini çeken ve dropdown'ı güncelleyen fonksiyon
+      function updateDistricts(city, selectedDistrict = null) {
+          if (city) {
+              // AJAX isteği için hazırlanan URL
+              const url = `/users/ajax/get-districts/?city=${encodeURIComponent(city)}`;
+              
+              fetch(url)
+                  .then(response => response.json())
+                  .then(data => {
+                      // Önceki ilçe seçeneklerini temizle
+                      districtSelect.innerHTML = '<option value="">İlçe seçiniz</option>';
+                      
+                      // İlçe verisi boş değilse
+                      if (data.districts && data.districts.length > 0) {
+                          // Yeni ilçe seçeneklerini ekle
+                          data.districts.forEach(function(district) {
+                              // value ve text değeri aynı olan bir option oluştur
+                              const option = new Option(district, district);
+                              districtSelect.add(option);
+                          });
+
+                          // Eğer önceden seçili bir ilçe varsa, onu tekrar seç
+                          if (selectedDistrict) {
+                              districtSelect.value = selectedDistrict;
+                          }
+                          
+                          // İlçe alanını görünür yap
+                          if(districtWrapper) districtWrapper.style.display = 'block';
+                      } else {
+                           // O şehre ait ilçe bulunamazsa ilçe alanını gizle
+                           if(districtWrapper) districtWrapper.style.display = 'none';
+                      }
+                  })
+                  .catch(error => {
+                      console.error('İlçeler alınırken bir hata oluştu:', error);
+                      // Hata durumunda da ilçe alanını gizle
+                      if(districtWrapper) districtWrapper.style.display = 'none';
+                  });
+          } else {
+              // Şehir seçilmemişse ilçe alanını gizle ve temizle
+              districtSelect.innerHTML = '<option value="">İlçe seçiniz</option>';
+              if(districtWrapper) districtWrapper.style.display = 'none';
+          }
+      }
+  }
 });
