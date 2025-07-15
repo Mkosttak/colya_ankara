@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>{{ user.username }} - Düzenle</h2>
+  <a href="{% url 'admin_users_list' %}" class="btn btn-secondary">Geri</a>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Basic Info -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_first_name" class="form-label">İsim</label>
+            {{ form.first_name }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_last_name" class="form-label">Soyisim</label>
+            {{ form.last_name }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="id_username" class="form-label">Kullanıcı Adı</label>
+        {{ form.username }}
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_role" class="form-label">Rol</label>
+            {{ form.role }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label for="id_is_active" class="form-check-label">Aktif</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Editor Permissions -->
+      <div class="mb-3">
+        <label class="form-label">Editör Yetkileri</label>
+        <div class="permission-checkboxes">
+          <div class="form-check">
+            {{ form.can_edit_foods }}
+            <label class="form-check-label" for="id_can_edit_foods">Glutensiz Gıda Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_venues }}
+            <label class="form-check-label" for="id_can_edit_venues">Glutensiz Mekan Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_hotels }}
+            <label class="form-check-label" for="id_can_edit_hotels">Glutensiz Otel Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_medicines }}
+            <label class="form-check-label" for="id_can_edit_medicines">Glutensiz İlaç Yetki</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_edit_recipes }}
+            <label class="form-check-label" for="id_can_edit_recipes">Glutensiz Tarif Yetki</label>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary">Güncelle</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
